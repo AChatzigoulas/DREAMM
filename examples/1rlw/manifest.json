@@ -1,0 +1,23 @@
+{
+  "schema": "dreamm-public-example/1",
+  "pdb_id": "1RLW",
+  "source": "source.cif",
+  "source_url": "https://files.rcsb.org/download/1RLW.cif",
+  "sha256": "54c4a52e2969fed187d22355ca13fa0af7b716bf5705b0768d90f081563aa2c4",
+  "format": "mmcif",
+  "classification_reference_model_index": 0,
+  "expected_reference_protein_residues": 126,
+  "expected_eligible_residues": 95,
+  "regression_final_calls": [
+    {"chain": "A", "resnum": "34", "amino_acid": "A", "broken_chain": 0},
+    {"chain": "A", "resnum": "35", "amino_acid": "F", "broken_chain": 0},
+    {"chain": "A", "resnum": "38", "amino_acid": "M", "broken_chain": 0},
+    {"chain": "A", "resnum": "39", "amino_acid": "L", "broken_chain": 0},
+    {"chain": "A", "resnum": "96", "amino_acid": "Y", "broken_chain": 0},
+    {"chain": "A", "resnum": "97", "amino_acid": "V", "broken_chain": 0},
+    {"chain": "A", "resnum": "98", "amino_acid": "M", "broken_chain": 0}
+  ],
+  "evidence_class": "public_structure_and_computational_regression_control_not_experimental_binding_validation",
+  "fresh_HHblits_repeatability": "15-thread searches can change Conservation; record all differences explicitly",
+  "model_sha256": "b68b031bce885a2b7f572205a42ff0986947b1e62a788dbde409a5e0b379b90d"
+}

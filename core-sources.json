@@ -1,0 +1,117 @@
+{
+  "files": {
+    "dreamm/data/compatibility-profile.json": "9e9758aedd5932a5d32e319b7a9edadea4a8b899cb1ab74317a584794bb74a2d",
+    "dreamm/data/protdcal-schema.json": "c0ff9f03d726766ad665256b907c8337abf141bf226e367537fe13dd55e88cb1",
+    "dreamm_ensemble/__init__.py": "8d96489e2323d536070509d3021e339c749d044a7bed1eaa6be83845533033f4",
+    "dreamm_ensemble/cluster_replay.py": "c0b925d584924a78c8267e55bf4cf42c9b2ec49ab56829ebb3fb835928ba6057",
+    "dreamm_ensemble/essa_checkpoints.py": "4ebf93d09567e8f0df5e42a7c4c5cc1ce569df0237babce663571b23b8d09684",
+    "dreamm_ensemble/frames.py": "38eb1f88af502a3c0538a0790dc0b93f30e0acf8ec1799efebf85222457bd2c7",
+    "dreamm_ensemble/p2rank_csv.py": "8c1ad196e85044396d7379e419f4333982779afe773db25fa98e0610625e1073",
+    "dreamm_ensemble/pockets.py": "3a072278ab3e341d45fd1487aacbc7b602062314aa211f9944d21509d39bfc89",
+    "dreamm_m1/__init__.py": "54b519359b757b52e35d50f06247ec224c033d8d26ca2b26b45a57c05fac07dd",
+    "dreamm_m1/benchmarking.py": "975af778ebb9d349e3bc28f5ea585d08b0c16dcc2bd7c72624e7eab88d09ef7b",
+    "dreamm_m1/capture.py": "f3a3798ae9ea71d5c56a9cbd3a5c70c39fdb079418829ded8919592c407338a6",
+    "dreamm_m1/checkpoints.py": "d215587d023902f39c173322835e6d764a382eb506c5233817988a6da0cd9a35",
+    "dreamm_m1/execution_profiles.py": "f5400f0b2fdb93ce969669a6c05df0c7c6865545c65a95f4a117843b6f00673c",
+    "dreamm_m1/extraction.py": "48cb8aeb98289b4efc7d6737ba54310fb878025a7314cee878fea41afc92476b",
+    "dreamm_m1/features.py": "96a04834ff374efaeefb4a7bc112fc6df8ecd440ea73a432dc5233b1a0f74599",
+    "dreamm_m1/gemmi_runtime.py": "63567c89ed4fe0f87d0cde5d242fbe535aae7f10978d508ce458a27c48de8132",
+    "dreamm_m1/hotspot_benchmarks.py": "bc3c615538180763dcb9abb6fdcc05e028ee4e240099149f4db0e7c9d5731991",
+    "dreamm_m1/identity.py": "9fe0c93a4119c0bfea70e3de0d87117b1c3b871993bb1940737f26f523dbd510",
+    "dreamm_m1/inference.py": "9a8e6f03c554b5438bb86cf875c4d21efe9d974c52d0f5271c14872161339f98",
+    "dreamm_m1/local_budget.py": "50901306aedd319dffa3313e020cf453dc94762cbf633f0c17e432fbdfc27962",
+    "dreamm_m1/measurement.py": "02a706fe8cb18bcbedec70dea0914cb9e62162370e30a90844cd99c82985efc8",
+    "dreamm_m1/mmcif_evidence.py": "b41caeccafe86a2fb4e60a1347f01ec527f93f884731968fa3df77a2c2405999",
+    "dreamm_m1/mmcif_input.py": "ca682ddc651c061e40bf198ba938e6a80168534754d035e35c8f38bd0f80aeaa",
+    "dreamm_m1/msms_mesh.py": "83bbd18070c03b17187bbba8f88974058ea16b8d464a071ac2cd038c92e1a777",
+    "dreamm_m1/native_checkpoints.py": "b9043c8c3082959df8197734dd2170d695c130208dfd668c606f8bde832fdbb7",
+    "dreamm_m1/native_m1.py": "c3a0d4481f987f3f2ce688ed8889713f86f1148771f1b29689364582adb3859e",
+    "dreamm_m1/pdb_evidence.py": "64e50f3b6266dc87dd447d98d6bc9623e9c06e98c93e0ad2569e9a5c0c5953c0",
+    "dreamm_m1/pdb_input.py": "9e45a51b299f0ea6262ea2e09e2a02d1f60a4d381b3a7194e24d658d67014508",
+    "dreamm_m1/pipeline.py": "b455e02b5c216e8f7f54c977717b96c1b0d0ffe6acb86ce28011fbcb30394179",
+    "dreamm_m1/preparation.py": "178a50e97f42637e776b6e4268f54b0729bb27c4b2f21bd0f54ba9ed7a51cf88",
+    "dreamm_m1/protdcal.py": "955174a336bf02ccc6d00fbdd1ea648ef37e1a52cc9fb0dec17c5ca92e8d823c",
+    "dreamm_m1/protdcal_batch.py": "f893333267d236e7e9eb8b27daea02287e0979c041aa27ae41c8f9d6feb54cf8",
+    "dreamm_m1/receipt_chunks.py": "91150894dd62d962d55a19ac2c9598537708280726a4094096404eda79d0283b",
+    "dreamm_m1/reference.py": "46c8426468ce902e11c2915a5c227c215b588a0660a9dfcfcd063a2c8aaad97c",
+    "dreamm_m1/rocky_admission.py": "5ca16ba02dc4c5ccee890c5c93cdce900ead5e832b23e38366934494a6a70598",
+    "dreamm_m1/rocky_database.py": "cd9b07d83d956601c7305a2fbe0a3939c02eb7060bbb6a2d6083cd297d25f845",
+    "dreamm_m1/scaling_fixtures.py": "0039b8eb72e5555f1b5d1752eb9c87128be4fcc7b1daa23f1e52edf75dd56008",
+    "dreamm_m1/source_packet.py": "7b7dd978a5f511d53c9d98264807dcc7ee4b51e5c54efb628e0598a39bcd5435",
+    "dreamm_m1/wclq.py": "59cdeba26d54e16add1ba1dbffd89c728cf7d6920e4e01c7ecb4c04e67566b55"
+  },
+  "schema": "dreamm-standalone-core-export/1",
+  "source_origin": "owner_authorized_new_DREAMM_reconstruction_modules",
+  "standalone_overlays": {
+    "dreamm_ensemble/frames.py": {
+      "base_sha256": "b59f6410d779a52b4e8efa9cb6c89d1e5f58173d4203e28e692aa2986d592526",
+      "pre_v1_1_sha256": "b59f6410d779a52b4e8efa9cb6c89d1e5f58173d4203e28e692aa2986d592526",
+      "purpose": "trusted-local source model capacity and selected C-alpha inventory"
+    },
+    "dreamm_m1/capture.py": {
+      "base_sha256": "50fc8c323e40aa4d5a1a1b6f97ba3e65e488cae78cb041925d726240e246c529",
+      "pre_v1_1_sha256": "50fc8c323e40aa4d5a1a1b6f97ba3e65e488cae78cb041925d726240e246c529",
+      "purpose": "trusted-local size budget and exact safe bounded reads"
+    },
+    "dreamm_m1/execution_profiles.py": {
+      "base_sha256": "9ac110b36e2ad1ccef8657f87278b6c7c152e517b33c770b25ea0423af31db98",
+      "pre_v1_1_sha256": "9ac110b36e2ad1ccef8657f87278b6c7c152e517b33c770b25ea0423af31db98",
+      "purpose": "trusted-local profile may declare a larger file budget than bounded-worker"
+    },
+    "dreamm_m1/extraction.py": {
+      "base_sha256": "39de2c2d9dae457daad11d62907251185954a58578307fbc1e3a89b32bcba91e",
+      "pre_v1_1_sha256": "39de2c2d9dae457daad11d62907251185954a58578307fbc1e3a89b32bcba91e",
+      "purpose": "use documented converted amino acid identity when validating tool rows"
+    },
+    "dreamm_m1/identity.py": {
+      "base_sha256": "d57e58405cfea83383fb375773f0e2a9afd909b665e84bf61c47e450941dd8ac",
+      "pre_v1_1_sha256": "d57e58405cfea83383fb375773f0e2a9afd909b665e84bf61c47e450941dd8ac",
+      "purpose": "reversible converted residue aliases, insertion labels and TER projection"
+    },
+    "dreamm_m1/inference.py": {
+      "base_sha256": "7dc2cc778856c725c141b67566c8a5f292477dbaedbbdbbd5312732107e33966",
+      "pre_v1_1_sha256": "4480fc04a4ba0a1a9acd2d1086b0f0e8f06471c511d7e83f9eb62684b66c355c",
+      "purpose": "chain-aware terminal and polarity geometry with preserved strict thresholds"
+    },
+    "dreamm_m1/local_budget.py": {
+      "purpose": "separate trusted-local scratch and source budgets"
+    },
+    "dreamm_m1/mmcif_input.py": {
+      "base_sha256": "c66cb1af6a6325307680af75ae89b9eb67b99cda7f648169c746d50d3c24dd2a",
+      "pre_v1_1_sha256": "c66cb1af6a6325307680af75ae89b9eb67b99cda7f648169c746d50d3c24dd2a",
+      "purpose": "trusted-local byte, atom and model budgets"
+    },
+    "dreamm_m1/msms_mesh.py": {
+      "base_sha256": "3cdb90bcb84ddd0bcb1f97db79c7582c74eddece00a85cabf25bc0f5fd24cad5",
+      "pre_v1_1_sha256": "3cdb90bcb84ddd0bcb1f97db79c7582c74eddece00a85cabf25bc0f5fd24cad5",
+      "purpose": "trusted-local mesh capacity with complete row validation"
+    },
+    "dreamm_m1/native_m1.py": {
+      "base_sha256": "07c81e5a36c0f91dfb44f65f31d32c74db51213e0a10080d08946a3b048811c3",
+      "pre_v1_1_sha256": "07c81e5a36c0f91dfb44f65f31d32c74db51213e0a10080d08946a3b048811c3",
+      "purpose": "validate mesh and restore proven PQR chain grouping before unchanged calculations"
+    },
+    "dreamm_m1/pdb_evidence.py": {
+      "base_sha256": "b06050918a1de727768eff4a9dbb6e54c3cddb7b489701fd4dc4347e366480be",
+      "pre_v1_1_sha256": "b06050918a1de727768eff4a9dbb6e54c3cddb7b489701fd4dc4347e366480be",
+      "purpose": "trusted-local descriptor and Python feature receipt capacity"
+    },
+    "dreamm_m1/pdb_input.py": {
+      "base_sha256": "db0a5f7e181651599b45515a9c281b5db7c320ac166f25a247a7fd495f810626",
+      "pre_v1_1_sha256": "db0a5f7e181651599b45515a9c281b5db7c320ac166f25a247a7fd495f810626",
+      "purpose": "trusted-local input capacities and ordered model validation"
+    },
+    "dreamm_m1/pipeline.py": {
+      "base_sha256": "a56909d3dd87bccef56f67ec656ec10fa960242d262b778d88dfb1978e53ed00",
+      "pre_v1_1_sha256": "5e9267277b8402ad275b96e30c36544c90ac6243d40d0e3c73da43ee9ee91053",
+      "purpose": "trusted-local scientific admission for general sources"
+    },
+    "dreamm_m1/preparation.py": {
+      "base_sha256": "de0f4f6ced19e173377da45523bace4c7ab7ac8229d7e9b6a76b32a029d896f1",
+      "pre_v1_1_sha256": "de0f4f6ced19e173377da45523bace4c7ab7ac8229d7e9b6a76b32a029d896f1",
+      "purpose": "restore PQR chain identity from the original whitespace serializer and preserve scientific tokens"
+    }
+  },
+  "upstream_base_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+  "upstream_repository": "https://github.com/AChatzigoulas/DREAMM"
+}

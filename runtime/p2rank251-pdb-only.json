@@ -1,0 +1,708 @@
+{
+  "schema": "dreamm-p2rank-install/1",
+  "version": "2.5.1",
+  "source_revision": "9808a7723be9a94e2ffc21ab5f724cb6ae4ba01e",
+  "release_sha256": "d243f2d9036ac053fefb9407b5fe1c85f4fe077c519fd975ac585e995feab274",
+  "files": {
+    "models/default/model.zst": {
+      "sha256": "9c3fc8becd5e5db4a7d7a9026e19f68b0f85fd4723056d71be8fcc7cd2774962",
+      "bytes": 23081516
+    },
+    "models/default/features.txt": {
+      "sha256": "51e8804dd075aff21b4cf4ea5c6075bdb29d17371bc14b3ea364ee4f6b299809",
+      "bytes": 583
+    },
+    "models/alphafold/model.zst": {
+      "sha256": "9448edf263b4d849d869fe287e8ede2cad61aaad071d18da8e61d11ff1f975bb",
+      "bytes": 23657166
+    },
+    "models/alphafold/features.txt": {
+      "sha256": "e57a6c48e94275a466d9aaed71910d4fe3b5267bdcec8cca0fe3545fe4e7b90d",
+      "bytes": 567
+    },
+    "models/_score_transform/alphafold_ZscoreTpTransformer.json": {
+      "sha256": "d448d22a19412243d4445443532946a97b027ac9c861c7f31aaa1bbb14118b3d",
+      "bytes": 117
+    },
+    "models/_score_transform/alphafold_ProbabilityScoreTransformer.json": {
+      "sha256": "716d25ea13c9a4f5e9458d167f62cda139a51b36b077158e74e2e8d965c32dbc",
+      "bytes": 22306
+    },
+    "models/_score_transform/default_ZscoreTpTransformer.json": {
+      "sha256": "e180e8117a70fcac196a31f9d9f271fac5e489cd24bf1f1aa221c29ecec31109",
+      "bytes": 117
+    },
+    "models/_score_transform/residue/alphafold_ZscoreTpTransformer.json": {
+      "sha256": "41f7027ad160b7870d425c905d3a9f56411f7cd54ff58020cf3130d43f75c94a",
+      "bytes": 118
+    },
+    "models/_score_transform/residue/alphafold_ProbabilityScoreTransformer.json": {
+      "sha256": "5f1bd0b1096f5839cf0abb92b0b66e86094f48ad23691a96df634b1b02b9d583",
+      "bytes": 24614
+    },
+    "models/_score_transform/residue/default_ZscoreTpTransformer.json": {
+      "sha256": "452ad7169e03712f8857582b6c36ec8f5345e12632b434038baa3d794a13921e",
+      "bytes": 118
+    },
+    "models/_score_transform/residue/default_ProbabilityScoreTransformer.json": {
+      "sha256": "309c0be50143d8a81a9e1c7f30050fb11c00b20e1e3ad4633362d6477ee80be0",
+      "bytes": 24454
+    },
+    "models/_score_transform/default_ProbabilityScoreTransformer.json": {
+      "sha256": "78a2f1f761abac82ff7d2e86bf8ba18eeeaa282bcb96f078f16e91fd8d4a86b3",
+      "bytes": 22191
+    },
+    "config/default.groovy": {
+      "sha256": "85e4ac493d61cf51f253f9188191295fa4fcb4c89727690012400d089e2fd9f0",
+      "bytes": 10644
+    },
+    "config/alphafold.groovy": {
+      "sha256": "bc3be625000100ccf3d57907b67c726159c797b9bb421d07fc4a7b6fca0aaa9f",
+      "bytes": 709
+    },
+    "test_data/1fbl.pdb": {
+      "sha256": "11fd33fd2edaac9d5e5f4fff530f5cc4db063674dbe19e309e2675e64d83b0c7",
+      "bytes": 324972
+    },
+    "bin/p2rank.jar": {
+      "sha256": "4d73a85b796bd5ec5563d840abb5b1005f37b4651fd7f8aaad4b01a936ea1ece",
+      "bytes": 2129515
+    },
+    "bin/lib/cdk-valencycheck-2.11.jar": {
+      "sha256": "e72e26329f78a5eb41fb6a2863de69e0a526f2a45ff36affbd15ef5a63262a79",
+      "bytes": 27026
+    },
+    "bin/lib/cdk-dict-2.11.jar": {
+      "sha256": "959a63c08745307e391140edd782a2e3a3a53e01a45fd54ed19930f3251f06c4",
+      "bytes": 39841
+    },
+    "bin/lib/cdk-atomtype-2.11.jar": {
+      "sha256": "bf511ebb591ff2a41ecdc93ebb3fb81116f56e3a2c18329e08e2c9b86fde7cb5",
+      "bytes": 27423
+    },
+    "bin/lib/univocity-parsers-2.9.1.jar": {
+      "sha256": "31685122d5e392e98672ed6009a95a4c1623ca1185567bd44ee94527d454e5c3",
+      "bytes": 447005
+    },
+    "bin/lib/netlib-native_system-win-i686-1.1-natives.jar": {
+      "sha256": "65b4900fd4fdc6715d3d48cfac2a7809cab5ed626f20e212a747f579bb60a40a",
+      "bytes": 561459
+    },
+    "bin/lib/netlib-native_ref-win-i686-1.1-natives.jar": {
+      "sha256": "0dcdc8348430365f7d912dcffb13d4c133810fbc3f3334123edb7c7f88990c5f",
+      "bytes": 1826785
+    },
+    "bin/lib/gson-2.13.1.jar": {
+      "sha256": "94855942d4992f112946d3de1c334e709237b8126d8130bf07807c018a4a2120",
+      "bytes": 286972
+    },
+    "bin/lib/weka-dev-3.9.6.jar": {
+      "sha256": "fddae1352375e1518d02ab6e6267e4ab1c9eb04ebc4c3072ea5e9ddd8092d870",
+      "bytes": 9779161
+    },
+    "bin/lib/openchart-1.4.2.jar": {
+      "sha256": "89124632854ec653899f9f2f35f92f01cef1ac6567f860fcb7ac088c4f9a328a",
+      "bytes": 128599
+    },
+    "bin/lib/java-cup-runtime-11b-20160615.jar": {
+      "sha256": "5c01edb6a4371f601a1de816f36cd7da47cb8a34ecc99eac5fe7ed660854b559",
+      "bytes": 33308
+    },
+    "bin/lib/error_prone_annotations-2.38.0.jar": {
+      "sha256": "6661d5335090a5fc61dd869d2095bc6c1e2156e3aa47a6e4ababdf64c99a7889",
+      "bytes": 20389
+    },
+    "bin/lib/native_system-java-1.1.jar": {
+      "sha256": "2414fc6e29b73ba40e0df21ab9618e4f5dc5ac66aab32bd81ee213a68796155d",
+      "bytes": 54509
+    },
+    "bin/lib/zstd-jni-1.5.7-4.jar": {
+      "sha256": "e7f064bf1eab83fa785cf587f657f09649e3b0af6f27caa5382416953b5a35f8",
+      "bytes": 7409448
+    },
+    "bin/lib/netlib-java-1.1.jar": {
+      "sha256": "814b9cf2425bd05d836055a7293a227c297c65126bb091fa50230905421b8126",
+      "bytes": 94423
+    },
+    "bin/lib/cdk-silent-2.11.jar": {
+      "sha256": "aa7cc66a08417590cc43171bfe449448adffe0e8efeceb54a5e4cfb1f427391f",
+      "bytes": 141119
+    },
+    "bin/lib/netlib-native_system-linux-armhf-1.1-natives.jar": {
+      "sha256": "aab65e3a3f3f664496dc512bea38d5ece0723799770f2aa608a4f1410342cb96",
+      "bytes": 310891
+    },
+    "bin/lib/combinatoricslib3-3.4.0.jar": {
+      "sha256": "f77bc1a8deafa1220ddcdec9eb03c89fe9ef432d604305db651012ce6028ce31",
+      "bytes": 34997
+    },
+    "bin/lib/vecmath-1.3.1.jar": {
+      "sha256": "dbaa088690a23a954eff669a99d2452a24dd9f10d866725ff5d29ff4740a897e",
+      "bytes": 289881
+    },
+    "bin/lib/netlib-native_system-osx-x86_64-1.1-natives.jar": {
+      "sha256": "07230441e6d7985e30e13b4c6844c6388324a971e1d3c5d46880a213b37a4dd1",
+      "bytes": 553993
+    },
+    "bin/lib/groovy-4.0.28.jar": {
+      "sha256": "d77164a44ab994837e61eecead64721bdb1794fa2bc6704ac6fe70cd32ef9dd3",
+      "bytes": 7712577
+    },
+    "bin/lib/FastRandomForest_0.99.jar": {
+      "sha256": "a6d4f1829804d5e999d61396dda2befafe24d912e1f6a8ae4cd1003b3e51ace8",
+      "bytes": 102551
+    },
+    "bin/lib/ejml-core-0.39.jar": {
+      "sha256": "937fb1b1a0859d88e76b5cf0b2ddc62d03198120fbf213b5cdf2d6c950abc995",
+      "bytes": 199222
+    },
+    "bin/lib/commons-csv-1.14.1.jar": {
+      "sha256": "32be0e1e76673092f5d12cb790bd2acb6c2ab04c4ea6efc69ea5ee17911c24fe",
+      "bytes": 60964
+    },
+    "bin/lib/arpack_combined_all-0.1.jar": {
+      "sha256": "9964fb948ef213548a79b23dd480af9d72f1450824fa006bbfea211ac1ffa6dc",
+      "bytes": 1194003
+    },
+    "bin/lib/faster-molecular-surface-1.0.jar": {
+      "sha256": "eaffad28e34381d2007c56d73c002b9baee491300c21e1b8360bb911e52ef5e1",
+      "bytes": 9690
+    },
+    "bin/lib/cdk-core-2.11.jar": {
+      "sha256": "e8c5d6b02bbc823692e70c1ec23b3ebc087a0dfacc2cd5e0cb5e64ba0ddb34d4",
+      "bytes": 321136
+    },
+    "bin/lib/cdk-standard-2.11.jar": {
+      "sha256": "d4241a22c2fe6766d631353ed2ee8b7a1f44c38a7b39f36655edeb42af45564c",
+      "bytes": 344017
+    },
+    "bin/lib/gpars-1.2.1.jar": {
+      "sha256": "f9e08bf964f34d129344404c01666276ec43c6704dd74e8d4ca32dcd1d2fb4a8",
+      "bytes": 1384400
+    },
+    "bin/lib/ciftools-java-7.0.1.jar": {
+      "sha256": "b36f5f2985735ddf54a0f34e099c369408c0211be3e77b73c98bbff7d1d261c6",
+      "bytes": 2575467
+    },
+    "bin/lib/native_ref-java-1.1.jar": {
+      "sha256": "120ca95d3a7b4646f44c3bcebdf7a149ec4f8cccf731a13bd84da103b836e236",
+      "bytes": 54461
+    },
+    "bin/lib/beam-func-1.3.8.jar": {
+      "sha256": "4c2e574c39599e965105b5919134627eddad5168492f14d526a73d4694f5cb4f",
+      "bytes": 39441
+    },
+    "bin/lib/jniloader-1.1.jar": {
+      "sha256": "2f1def54f30e1db5f1e7f2fd600fe2ab331bd6b52037e9a21505c237020b5573",
+      "bytes": 8685
+    },
+    "bin/lib/xom-1.3.9.jar": {
+      "sha256": "2b45f6d5b882ec3c13de86cf23512d01377c1943e8f8ad767298f67e03e561c5",
+      "bytes": 326351
+    },
+    "bin/lib/angus-activation-2.0.1.jar": {
+      "sha256": "b226761815868edf8964c1d71e6d2d54ab238c2788507061b4e0633933b4c131",
+      "bytes": 27370
+    },
+    "bin/lib/biojava-structure-7.2.2-rdk.1.jar": {
+      "sha256": "bc23e87326ee8f59abfe27bab53fd17afb7081bd6c3910bcabb0fc5b69ab7933",
+      "bytes": 1474491
+    },
+    "bin/lib/netlib-native_system-win-x86_64-1.1-natives.jar": {
+      "sha256": "d855c2fc7d70ffddaac504b556c6cc7c33288d85c173386e47921f44bbb34202",
+      "bytes": 637428
+    },
+    "bin/lib/jsr166y-1.7.0.jar": {
+      "sha256": "4d4e74532e81bc6a54e4cbda865999f4ab29885e850f0b835ea374800b84d0b2",
+      "bytes": 59716
+    },
+    "bin/lib/bounce-0.18.jar": {
+      "sha256": "bffff1505335c02256b7ab2ccffbe4aa4d3ac9fe14c17557809b7c9d99d666ca",
+      "bytes": 208593
+    },
+    "bin/lib/cdk-formula-2.11.jar": {
+      "sha256": "e7fb85554d2874879f72853ec91ad51385a906c97d756f6e32f06b974c64d29a",
+      "bytes": 78844
+    },
+    "bin/lib/java-cup-11b-20160615.jar": {
+      "sha256": "b6b27727d80f563950b20b3b6b5062ae7ce78a1b61a0f3113f42164ce0b31d5f",
+      "bytes": 124262
+    },
+    "bin/lib/cdk-qsarmolecular-2.11.jar": {
+      "sha256": "40dcab60681ca896974433ca3f10aed30d5ae25ec9afbe96c004abe7875446ab",
+      "bytes": 244150
+    },
+    "bin/lib/commons-math3-3.6.1.jar": {
+      "sha256": "1e56d7b058d28b65abd256b8458e3885b674c1d588fa43cd7d1cbb9c7ef2b308",
+      "bytes": 2213560
+    },
+    "bin/lib/cdk-smiles-2.11.jar": {
+      "sha256": "5af1a774c835294a72fd2d440216bafc1517bdd2c65ce5c98beac5388c8d54d1",
+      "bytes": 87388
+    },
+    "bin/lib/cdk-charges-2.11.jar": {
+      "sha256": "667cb3e93ec7927b542f85550fe9aa8f0dfcc906e72dfd3aecdd28ef216f7c00",
+      "bytes": 36021
+    },
+    "bin/lib/slf4j-api-2.0.17.jar": {
+      "sha256": "7b751d952061954d5abfed7181c1f645d336091b679891591d63329c622eb832",
+      "bytes": 69908
+    },
+    "bin/lib/hppc-0.10.0.jar": {
+      "sha256": "edc83b336476a2b06f7c17d09b17e98bb07678daf968c9825cc14275bdf20a26",
+      "bytes": 1529274
+    },
+    "bin/lib/commons-codec-1.19.0.jar": {
+      "sha256": "5c3881e4f556855e9c532927ee0c9dfde94cc66760d5805c031a59887070af5f",
+      "bytes": 374716
+    },
+    "bin/lib/cdk-fingerprint-2.11.jar": {
+      "sha256": "03c995edb5deb2ad0661fb74568653fbd322a3bced31b193a34c89aeecb71c20",
+      "bytes": 162634
+    },
+    "bin/lib/vecmath-1.5.2.jar": {
+      "sha256": "3558e81ca74c60dc01baca7ef05f48594bbaed43af45d4f1b9196e479734e675",
+      "bytes": 169541
+    },
+    "bin/lib/netlib-native_system-linux-i686-1.1-natives.jar": {
+      "sha256": "ecfd3c4e442411be9bc9aa74ea1b28b0fdf201dda00fe4559c68cde6e311520f",
+      "bytes": 435365
+    },
+    "bin/lib/beam-core-1.3.8.jar": {
+      "sha256": "4751119187f90d25d36a8263345633f74477ef3ed5426439a042f6c9b35f9a74",
+      "bytes": 144668
+    },
+    "bin/lib/cdk-fragment-2.11.jar": {
+      "sha256": "ef7f8ddaab4e1e741e908d19f6c23eabad8fa35ef75bfd5ff22faf2dff1162dd",
+      "bytes": 28896
+    },
+    "bin/lib/cdk-smarts-2.11.jar": {
+      "sha256": "e064d6d8bdc1e44d176dfc7d4a473c3260b352eef8e6dae6d77ed313f2c85a15",
+      "bytes": 88978
+    },
+    "bin/lib/forester-1.039.jar": {
+      "sha256": "062e517f29c49e149780722d9ed7e9320a2a8582963a39c25addbf76e67d6568",
+      "bytes": 1651430
+    },
+    "bin/lib/commons-lang3-3.18.0.jar": {
+      "sha256": "4eeeae8d20c078abb64b015ec158add383ac581571cddc45c68f0c9ae0230720",
+      "bytes": 702952
+    },
+    "bin/lib/commons-io-2.20.0.jar": {
+      "sha256": "df90bba0fe3cb586b7f164e78fe8f8f4da3f2dd5c27fa645f888100ccc25dd72",
+      "bytes": 563971
+    },
+    "bin/lib/j2objc-annotations-3.0.0.jar": {
+      "sha256": "88241573467ddca44ffd4d74aa04c2bbfd11bf7c17e0c342c94c9de7a70a7c64",
+      "bytes": 12467
+    },
+    "bin/lib/jakarta.xml.bind-api-4.0.0.jar": {
+      "sha256": "57e3796ad5753640088f5f9d3c53c183f2c250b7dad90529ea3e19a5515aa122",
+      "bytes": 127111
+    },
+    "bin/lib/zt-zip-1.17.jar": {
+      "sha256": "fec7e33c4bea6ce42a427e3fbf21a3aad33878289dfd06a849282ce33e7f8de3",
+      "bytes": 111592
+    },
+    "bin/lib/commons-compress-1.28.0.jar": {
+      "sha256": "e1522945218456f3649a39bc4afd70ce4bd466221519dba7d378f2141a4642ca",
+      "bytes": 1117221
+    },
+    "bin/lib/netlib-native_system-linux-x86_64-1.1-natives.jar": {
+      "sha256": "9a929390c8c4845a2bff01e7bc0d8381fcc89ebc147c037f877f02b19806d013",
+      "bytes": 458605
+    },
+    "bin/lib/flatlaf-2.0.jar": {
+      "sha256": "01fad44e8ea946dc758cdcf29c7d1de59f1c5d3cdc2aa536de7dd5286b6bea2a",
+      "bytes": 674859
+    },
+    "bin/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar": {
+      "sha256": "b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99",
+      "bytes": 2199
+    },
+    "bin/lib/biojava-alignment-7.2.2.jar": {
+      "sha256": "d704761781bc9e8e75dd5fce2228c6ff503ceec84aa16bfc59db097546d99023",
+      "bytes": 130500
+    },
+    "bin/lib/cdk-reaction-2.11.jar": {
+      "sha256": "cfb31f51197c1ff46606fddda4bfe3af34dc39e6c71756ca68de868817694959",
+      "bytes": 148541
+    },
+    "bin/lib/netlib-native_ref-linux-armhf-1.1-natives.jar": {
+      "sha256": "1d9ff5c35a542f598bd8d01c12d838ac4f457beae528f0b1930f21c0bff3eaae",
+      "bytes": 1208080
+    },
+    "bin/lib/multiverse-core-0.7.0.jar": {
+      "sha256": "c54398f0228054b7fae65227433ae9da87e5b2a96eba824e66a924912d10fc50",
+      "bytes": 246777
+    },
+    "bin/lib/jheaps-0.11.jar": {
+      "sha256": "ea2fc1f299bfe85ebbc2f054d6a89eea17f06065192cfa31997f876536a7b383",
+      "bytes": 133503
+    },
+    "bin/lib/xz-1.10.jar": {
+      "sha256": "95c63c1a55b22dd6453890a419cc1a640f790bbf7d8ae82db1e30aefefb08888",
+      "bytes": 168569
+    },
+    "bin/lib/jul-to-slf4j-2.0.17.jar": {
+      "sha256": "a7afcd23b9cfd1475e55c94f943b808c5922035e7e2c2a5c65a487a4106bc538",
+      "bytes": 6349
+    },
+    "bin/lib/jspecify-1.0.0.jar": {
+      "sha256": "1fad6e6be7557781e4d33729d49ae1cdc8fdda6fe477bb0cc68ce351eafdfbab",
+      "bytes": 3819
+    },
+    "bin/lib/jsr305-3.0.2.jar": {
+      "sha256": "766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7",
+      "bytes": 19936
+    },
+    "bin/lib/failureaccess-1.0.3.jar": {
+      "sha256": "cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb",
+      "bytes": 10763
+    },
+    "bin/lib/biojava-core-7.2.2.jar": {
+      "sha256": "0db03272a3f1f5bf95e99bf69faac249f26e31f99eecdfce50349f3db317d651",
+      "bytes": 495809
+    },
+    "bin/lib/jclipboardhelper-0.1.0.jar": {
+      "sha256": "eecc85ec16abf300dccbdd72245c2bcb8bb471a516673bac9d512734d217704f",
+      "bytes": 9572
+    },
+    "bin/lib/jama-1.0.3.jar": {
+      "sha256": "c7325ee29be1aac1287ddac690f73671f1cd911ca9eca7c619990e86310556fd",
+      "bytes": 37424
+    },
+    "bin/lib/euclid-0.22.5.jar": {
+      "sha256": "b84c0879a38b5de6e57ef02a019e5d504a115936bb8461ad08246fc69aec8588",
+      "bytes": 323668
+    },
+    "bin/lib/jgrapht-core-1.4.0.jar": {
+      "sha256": "e6db18743ec01561623c4c6242f8778289da4bf990ac77fa659e09471690856f",
+      "bytes": 1091677
+    },
+    "bin/lib/istack-commons-runtime-4.1.2.jar": {
+      "sha256": "7fd6792361f4dd00f8c56af4a20cecc0066deea4a8f3dec38348af23fc2296ee",
+      "bytes": 25788
+    },
+    "bin/lib/mtj-1.0.4.jar": {
+      "sha256": "27a53db335bc6af524b30f97ec3fb4b6df65e7648d70e752447c7dd9bc4697c8",
+      "bytes": 268984
+    },
+    "bin/lib/netlib-native_ref-linux-i686-1.1-natives.jar": {
+      "sha256": "bf1dcc3b32a32bde8bd897b8c7da21cbd75b9febb89321a11b4f9a254aeb92ec",
+      "bytes": 1489507
+    },
+    "bin/lib/cdk-hash-2.11.jar": {
+      "sha256": "4e3001b94d749f2eedfed7093449b73ec9558ef6034babe25dd43a5e14eade4d",
+      "bytes": 68733
+    },
+    "bin/lib/cdk-ctab-2.11.jar": {
+      "sha256": "b4f47f358cd198c6dd4ebc737d19cffc845ff1750c75d6091164dd6234cffd53",
+      "bytes": 168283
+    },
+    "bin/lib/netlib-native_ref-linux-x86_64-1.1-natives.jar": {
+      "sha256": "f9034b22e89352ea1ba0c1edfb7529057c6b6acd651babb58839af19897e8ac0",
+      "bytes": 1749371
+    },
+    "bin/lib/netlib-native_ref-osx-x86_64-1.1-natives.jar": {
+      "sha256": "fbe45f80be86fb809eb159b75ba45433cbba2b5fb6814758d1f15823b2b17438",
+      "bytes": 1839499
+    },
+    "bin/lib/jaxb-core-4.0.3.jar": {
+      "sha256": "d6d75c422752684fbf04dd74a21698feae0e4a406c2892b5af02d23dc97b2ac6",
+      "bytes": 138671
+    },
+    "bin/lib/jfilechooser-bookmarks-0.1.6.jar": {
+      "sha256": "9b4c0b75e9e0d1f2f64d3ec241b628afe8635fc5e2e578fa4a247ebcbe2695a5",
+      "bytes": 48619
+    },
+    "bin/lib/txw2-4.0.3.jar": {
+      "sha256": "df07a51801b995e44aec9a95ef875d95fbb8de2874417de6066d84f731cb9e9c",
+      "bytes": 73269
+    },
+    "bin/lib/FasterForest-2.5.2.jar": {
+      "sha256": "617987488f2908dc262a51221decb857aefd85db66b14dcb590df040ebfa98bc",
+      "bytes": 118501
+    },
+    "bin/lib/cdk-ioformats-2.11.jar": {
+      "sha256": "5426daaae45c2fd775d50934c3b498fdba8e407d97473fb150a7a87216e3a561",
+      "bytes": 105513
+    },
+    "bin/lib/core-1.1.2.jar": {
+      "sha256": "5ffaddee0a3f8d09a56064aa05feb95837ddad9d42d9dcc37479c66e869aa139",
+      "bytes": 164422
+    },
+    "bin/lib/netlib-native_ref-win-x86_64-1.1-natives.jar": {
+      "sha256": "322a4d1a9cdfa284b1025b3d85c9ece18605be2caf795abfbaa366eb403fbf32",
+      "bytes": 2305169
+    },
+    "bin/lib/cdk-interfaces-2.11.jar": {
+      "sha256": "a257a8487e0e63c78d5dfc6df9d9bb3259d9ac86aabe6438e78f740f731f22ff",
+      "bytes": 76636
+    },
+    "bin/lib/javax.annotation-api-1.3.2.jar": {
+      "sha256": "e04ba5195bcd555dc95650f7cc614d151e4bcd52d29a10b8aa2197f3ab89ab9b",
+      "bytes": 26586
+    },
+    "bin/lib/cdk-isomorphism-2.11.jar": {
+      "sha256": "25e0b02c0025cf6b0a659eadfad0e090ffe095d2dfb20ec76ef99f5a7b633989",
+      "bytes": 158019
+    },
+    "bin/lib/cdk-qsar-2.11.jar": {
+      "sha256": "90448c2ce1b2550cdde109cc337976e05e4a6dc2e3c78ded487f8f2cfe57ee8b",
+      "bytes": 41411
+    },
+    "bin/lib/jakarta.activation-api-2.1.2.jar": {
+      "sha256": "f53f578dd0eb4170c195a4e215c59a38abfb4123dcb95dd902fef92876499fbb",
+      "bytes": 66096
+    },
+    "bin/lib/jaxb-runtime-4.0.3.jar": {
+      "sha256": "795e2dbdd3e64c8ba7e532e35f83136603931a8e9a3b5ffeb05f9f483adab6e0",
+      "bytes": 920315
+    },
+    "bin/lib/log4j-api-2.26.1.jar": {
+      "sha256": "f1810a4704ccce019d02bba029dc02a4f2ac0c997f647b465e7d409c1927f822",
+      "bytes": 351428
+    },
+    "bin/lib/log4j-core-2.26.1.jar": {
+      "sha256": "2ec8c3bf5a6d7c89be8620116a2fc973f7dda1ad0261ad393c4d4726edfd3dcb",
+      "bytes": 2015459
+    },
+    "bin/lib/log4j-slf4j2-impl-2.26.1.jar": {
+      "sha256": "cbdfb4c2bcc10f0927c61036db54924250f3924ecd13ea913cefe4f99c08fa66",
+      "bytes": 30212
+    },
+    "bin/lib/guava-33.7.2-jre.jar": {
+      "sha256": "b530942257fb935f8b2cfaa5f8eb5bd59c555fd8e8d01b8ce98912e077ea606c",
+      "bytes": 3057659
+    },
+    "ccd/chemcomp/ALA.cif.gz": {
+      "sha256": "9bea2cb193d575472a5605f2d7a90dcd3d2b57697a5ae4d911e8cf3a2a852723",
+      "bytes": 1436
+    },
+    "ccd/chemcomp/ARG.cif.gz": {
+      "sha256": "6fb5042f803edfe195f6cdd827c4f6ee836a59d8c639718dbc9a7aeaafbf1d65",
+      "bytes": 2145
+    },
+    "ccd/chemcomp/ASN.cif.gz": {
+      "sha256": "6c712af868944586672a92c0052ac0810d8b4bac949d9fb9da05780c00922fd0",
+      "bytes": 1656
+    },
+    "ccd/chemcomp/ASP.cif.gz": {
+      "sha256": "b2f519352e75ed2f836919e872c4e43595d3e478d39c63bbe52e709129b0fabf",
+      "bytes": 1590
+    },
+    "ccd/chemcomp/CA.cif.gz": {
+      "sha256": "dc8be4c785088b02b6a7e201fac1758b7a259b4afb2eb9aba58843df829916a9",
+      "bytes": 785
+    },
+    "ccd/chemcomp/CYS.cif.gz": {
+      "sha256": "2ae5b66e3282b5d2d4c5ada2c2bfd956c6b6459f37c8336be6851be45b63e278",
+      "bytes": 1502
+    },
+    "ccd/chemcomp/GLN.cif.gz": {
+      "sha256": "19ee203e4fb776594f166f8c4541f65567a433f39479b1108bcecc73d2a0c042",
+      "bytes": 1787
+    },
+    "ccd/chemcomp/GLU.cif.gz": {
+      "sha256": "72fc0aa53ab57d4583a26fa5c0e3273d985dd6dd48e6bca2c3233fc057de79dc",
+      "bytes": 1714
+    },
+    "ccd/chemcomp/GLY.cif.gz": {
+      "sha256": "d8cf040bffd23ffa85e34ceae8dac9729d65ae8ad2fd4b16b990dc25f1ba9a33",
+      "bytes": 1285
+    },
+    "ccd/chemcomp/HIS.cif.gz": {
+      "sha256": "aa2c6c0baa3c31f732daa45d32c5d145499c04dd5f4da1628d56966a1fb34c28",
+      "bytes": 1878
+    },
+    "ccd/chemcomp/HOH.cif.gz": {
+      "sha256": "57613ea8a325b4ca465d0e03f20d1df60ed3ef3b012d6690c2da6e944fd0f78c",
+      "bytes": 882
+    },
+    "ccd/chemcomp/ILE.cif.gz": {
+      "sha256": "09224c884dff10c75afbc26b3067eb0a007a9d686fc2b71a06ab0df178bb1633",
+      "bytes": 1851
+    },
+    "ccd/chemcomp/LEU.cif.gz": {
+      "sha256": "f4fc5ead08e58276fbb4eb1d68fc28a4f07db0db901a4edda95982c8c154b251",
+      "bytes": 1839
+    },
+    "ccd/chemcomp/LYS.cif.gz": {
+      "sha256": "0406dd320123e07cae03e01fbf15853693884ef6380f93850fce7db7decbaf68",
+      "bytes": 1963
+    },
+    "ccd/chemcomp/MET.cif.gz": {
+      "sha256": "d8344f9a76b8069d3da9b2997cabc2166c6c5fd6b97d504e18e41564c89e6ab7",
+      "bytes": 1751
+    },
+    "ccd/chemcomp/PHE.cif.gz": {
+      "sha256": "6206e5597264db2e18779bc9674b353988c5eeefc92cfe22befb8b7606cca0cd",
+      "bytes": 1892
+    },
+    "ccd/chemcomp/PRO.cif.gz": {
+      "sha256": "36b60570d80db1b25bc56296a2bf1a5e42c1513ec6a912f259fe77c79967f0b6",
+      "bytes": 1614
+    },
+    "ccd/chemcomp/SER.cif.gz": {
+      "sha256": "2c5169a3b17e0e6f00de3092532faa3853484533726c122c4841eb33ffb6b634",
+      "bytes": 1513
+    },
+    "ccd/chemcomp/THR.cif.gz": {
+      "sha256": "1b53e9133f322dd265a4f8b504a354c15fce0c5173915bdba4a9dd8c82b3c940",
+      "bytes": 1632
+    },
+    "ccd/chemcomp/TRP.cif.gz": {
+      "sha256": "2d449b4aaac46a37f494fe43bb6fe0a5e86310f58e5eef101f951977e91bff62",
+      "bytes": 2125
+    },
+    "ccd/chemcomp/TYR.cif.gz": {
+      "sha256": "7c630949e624dcb42bd40d6e281848cc2aa41f0f758851341fb68a5badd23c06",
+      "bytes": 1944
+    },
+    "ccd/chemcomp/VAL.cif.gz": {
+      "sha256": "85a92b00bfc97d7303ea5945454dcb12840631ea7e12693635f497c32672bec2",
+      "bytes": 1706
+    },
+    "ccd/chemcomp/ZN.cif.gz": {
+      "sha256": "402c06e07ce878ec029f180a31c225bdeab6c2a60906350a78ab3560ec6e13fc",
+      "bytes": 785
+    },
+    "ccd/chemcomp/HTA.cif.gz": {
+      "sha256": "0695027d4d19c16da745ce3e2400c70aa441ad3988299ac15eea5e645ef7f983",
+      "bytes": 3479
+    }
+  },
+  "classpath_order": [
+    "bin/p2rank.jar",
+    "bin/lib/FastRandomForest_0.99.jar",
+    "bin/lib/FasterForest-2.5.2.jar",
+    "bin/lib/angus-activation-2.0.1.jar",
+    "bin/lib/arpack_combined_all-0.1.jar",
+    "bin/lib/beam-core-1.3.8.jar",
+    "bin/lib/beam-func-1.3.8.jar",
+    "bin/lib/biojava-alignment-7.2.2.jar",
+    "bin/lib/biojava-core-7.2.2.jar",
+    "bin/lib/biojava-structure-7.2.2-rdk.1.jar",
+    "bin/lib/bounce-0.18.jar",
+    "bin/lib/cdk-atomtype-2.11.jar",
+    "bin/lib/cdk-charges-2.11.jar",
+    "bin/lib/cdk-core-2.11.jar",
+    "bin/lib/cdk-ctab-2.11.jar",
+    "bin/lib/cdk-dict-2.11.jar",
+    "bin/lib/cdk-fingerprint-2.11.jar",
+    "bin/lib/cdk-formula-2.11.jar",
+    "bin/lib/cdk-fragment-2.11.jar",
+    "bin/lib/cdk-hash-2.11.jar",
+    "bin/lib/cdk-interfaces-2.11.jar",
+    "bin/lib/cdk-ioformats-2.11.jar",
+    "bin/lib/cdk-isomorphism-2.11.jar",
+    "bin/lib/cdk-qsar-2.11.jar",
+    "bin/lib/cdk-qsarmolecular-2.11.jar",
+    "bin/lib/cdk-reaction-2.11.jar",
+    "bin/lib/cdk-silent-2.11.jar",
+    "bin/lib/cdk-smarts-2.11.jar",
+    "bin/lib/cdk-smiles-2.11.jar",
+    "bin/lib/cdk-standard-2.11.jar",
+    "bin/lib/cdk-valencycheck-2.11.jar",
+    "bin/lib/ciftools-java-7.0.1.jar",
+    "bin/lib/combinatoricslib3-3.4.0.jar",
+    "bin/lib/commons-codec-1.19.0.jar",
+    "bin/lib/commons-compress-1.28.0.jar",
+    "bin/lib/commons-csv-1.14.1.jar",
+    "bin/lib/commons-io-2.20.0.jar",
+    "bin/lib/commons-lang3-3.18.0.jar",
+    "bin/lib/commons-math3-3.6.1.jar",
+    "bin/lib/core-1.1.2.jar",
+    "bin/lib/ejml-core-0.39.jar",
+    "bin/lib/error_prone_annotations-2.38.0.jar",
+    "bin/lib/euclid-0.22.5.jar",
+    "bin/lib/failureaccess-1.0.3.jar",
+    "bin/lib/faster-molecular-surface-1.0.jar",
+    "bin/lib/flatlaf-2.0.jar",
+    "bin/lib/forester-1.039.jar",
+    "bin/lib/gpars-1.2.1.jar",
+    "bin/lib/groovy-4.0.28.jar",
+    "bin/lib/gson-2.13.1.jar",
+    "bin/lib/guava-33.7.2-jre.jar",
+    "bin/lib/hppc-0.10.0.jar",
+    "bin/lib/istack-commons-runtime-4.1.2.jar",
+    "bin/lib/j2objc-annotations-3.0.0.jar",
+    "bin/lib/jakarta.activation-api-2.1.2.jar",
+    "bin/lib/jakarta.xml.bind-api-4.0.0.jar",
+    "bin/lib/jama-1.0.3.jar",
+    "bin/lib/java-cup-11b-20160615.jar",
+    "bin/lib/java-cup-runtime-11b-20160615.jar",
+    "bin/lib/javax.annotation-api-1.3.2.jar",
+    "bin/lib/jaxb-core-4.0.3.jar",
+    "bin/lib/jaxb-runtime-4.0.3.jar",
+    "bin/lib/jclipboardhelper-0.1.0.jar",
+    "bin/lib/jfilechooser-bookmarks-0.1.6.jar",
+    "bin/lib/jgrapht-core-1.4.0.jar",
+    "bin/lib/jheaps-0.11.jar",
+    "bin/lib/jniloader-1.1.jar",
+    "bin/lib/jspecify-1.0.0.jar",
+    "bin/lib/jsr166y-1.7.0.jar",
+    "bin/lib/jsr305-3.0.2.jar",
+    "bin/lib/jul-to-slf4j-2.0.17.jar",
+    "bin/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+    "bin/lib/log4j-api-2.26.1.jar",
+    "bin/lib/log4j-core-2.26.1.jar",
+    "bin/lib/log4j-slf4j2-impl-2.26.1.jar",
+    "bin/lib/mtj-1.0.4.jar",
+    "bin/lib/multiverse-core-0.7.0.jar",
+    "bin/lib/native_ref-java-1.1.jar",
+    "bin/lib/native_system-java-1.1.jar",
+    "bin/lib/netlib-java-1.1.jar",
+    "bin/lib/netlib-native_ref-linux-armhf-1.1-natives.jar",
+    "bin/lib/netlib-native_ref-linux-i686-1.1-natives.jar",
+    "bin/lib/netlib-native_ref-linux-x86_64-1.1-natives.jar",
+    "bin/lib/netlib-native_ref-osx-x86_64-1.1-natives.jar",
+    "bin/lib/netlib-native_ref-win-i686-1.1-natives.jar",
+    "bin/lib/netlib-native_ref-win-x86_64-1.1-natives.jar",
+    "bin/lib/netlib-native_system-linux-armhf-1.1-natives.jar",
+    "bin/lib/netlib-native_system-linux-i686-1.1-natives.jar",
+    "bin/lib/netlib-native_system-linux-x86_64-1.1-natives.jar",
+    "bin/lib/netlib-native_system-osx-x86_64-1.1-natives.jar",
+    "bin/lib/netlib-native_system-win-i686-1.1-natives.jar",
+    "bin/lib/netlib-native_system-win-x86_64-1.1-natives.jar",
+    "bin/lib/openchart-1.4.2.jar",
+    "bin/lib/slf4j-api-2.0.17.jar",
+    "bin/lib/txw2-4.0.3.jar",
+    "bin/lib/univocity-parsers-2.9.1.jar",
+    "bin/lib/vecmath-1.3.1.jar",
+    "bin/lib/vecmath-1.5.2.jar",
+    "bin/lib/weka-dev-3.9.6.jar",
+    "bin/lib/xom-1.3.9.jar",
+    "bin/lib/xz-1.10.jar",
+    "bin/lib/zstd-jni-1.5.7-4.jar",
+    "bin/lib/zt-zip-1.17.jar"
+  ],
+  "science_profiles": {
+    "default": "71e88d33f8199bcc008b7e750b09c45aa3d2c3adf92cd6d4adeec8774bab0150",
+    "alphafold": "4fd7e185968efab399599049eac8da7d39bc102da299727ed442915838470b6f"
+  },
+  "artifacts": {
+    "p2rank_2.5.1.tar.gz": {
+      "bytes": 275625956,
+      "sha256": "d243f2d9036ac053fefb9407b5fe1c85f4fe077c519fd975ac585e995feab274",
+      "url": "https://github.com/rdk/p2rank/releases/download/2.5.1/p2rank_2.5.1.tar.gz"
+    },
+    "guava-33.7.2-jre.jar": {
+      "bytes": 3057659,
+      "sha256": "b530942257fb935f8b2cfaa5f8eb5bd59c555fd8e8d01b8ce98912e077ea606c",
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.7.2-jre/guava-33.7.2-jre.jar"
+    },
+    "HTA.cif": {
+      "bytes": 10776,
+      "sha256": "ac8700eeddf7aa0c218a44c3e5ebfea9e767d25b689cf6984f9c12538db892d4",
+      "url": "https://files.rcsb.org/ligands/download/HTA.cif"
+    },
+    "apache-log4j-2.26.1-bin.zip": {
+      "bytes": 3700353,
+      "sha256": "e1488c19241772da9d391da755536af9da3b10f59ae07747ddd4802ae1a5ea77",
+      "url": "https://archive.apache.org/dist/logging/log4j/2.26.1/apache-log4j-2.26.1-bin.zip",
+      "sha512": "d4ffb3da5b3446c0c10a73ac31b821756f0d9ec2857b4dcc9e643af287a7d995afcd2cebf71883a288acd108c3c051f3800256bc5a823d04905e1e191c890ddf"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+# New application code has the same line endings on every platform.
+.gitattributes text eol=lf
+LICENSE text eol=lf
+INSTALL.md text eol=lf
+MODERN_STACK.md text eol=lf
+runtime/*.json text eol=lf
+runtime/julia/*.toml text eol=lf
+STANDALONE.md text eol=lf
+build.py text eol=lf
+core-sources.json text eol=lf
+src/dreamm/** text eol=lf
+tests/** text eol=lf
+tools/** text eol=lf
+# Exact scientific exports retain their original LF or CRLF byte fingerprints.
+src/dreamm_m1/** -text whitespace=cr-at-eol
+src/dreamm_ensemble/** -text whitespace=cr-at-eol
+src/dreamm/data/compatibility-profile.json -text !eol whitespace=cr-at-eol
+src/dreamm/data/protdcal-schema.json -text !eol whitespace=cr-at-eol
+src/dreamm/data/protdcal-schema.tsv -text !eol whitespace=cr-at-eol
+src/dreamm/data/wclq-weights.json -text !eol whitespace=cr-at-eol
+examples/1rlw/source.cif -text !eol -whitespace
+examples/1rlw/source.pdb -text !eol -whitespace

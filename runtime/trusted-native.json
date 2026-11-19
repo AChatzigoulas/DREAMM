@@ -1,0 +1,60 @@
+{
+  "dssp": {
+    "name": "dssp",
+    "filename": "dssp-3.0.0-h3fd9d12_4.tar.bz2",
+    "url": "https://conda.anaconda.org/salilab/linux-64/dssp-3.0.0-h3fd9d12_4.tar.bz2",
+    "bytes": 3265669,
+    "sha256": "9f3e1420b20d3ba0ae119fb54286e3ac6d5f91f6576ea3389f7a5d019b690337",
+    "vendor_sha256_available": false,
+    "vendor_md5": "47b5800f7d862f0b25f6e1873c816d6b",
+    "acquisition": "official-upstream",
+    "redistribute": null
+  },
+  "msms": {
+    "name": "msms",
+    "filename": "msms_i86_64Linux2_2.6.1.tar.gz",
+    "url": "https://github.com/sannerlab/downloads/releases/download/msms-2.6.1/msms_i86_64Linux2_2.6.1.tar.gz",
+    "bytes": 593147,
+    "sha256": "5f0ca50360b5938e74c538e0399d582abc4a40ef4cf410e66f31a1f91e6e3e1f",
+    "vendor_sha256_available": true,
+    "vendor_md5": null,
+    "acquisition": "official-upstream",
+    "redistribute": false
+  },
+  "freesasa": {
+    "name": "freesasa",
+    "filename": "freesasa-2.0.3.tar.gz",
+    "url": "https://github.com/mittinatten/freesasa/releases/download/2.0.3/freesasa-2.0.3.tar.gz",
+    "bytes": 852096,
+    "sha256": "ba1d4f7e9dd51ae2452b5c3a80ac34039d51da4826dae1dbe173cd7a1d6aca94",
+    "vendor_sha256_available": false,
+    "vendor_md5": null,
+    "acquisition": "official-upstream",
+    "redistribute": null
+  },
+  "hhsuite": {
+    "filename": "hhsuite-3.3.0-py37pl526hfa133b6_0.tar.bz2",
+    "url": "https://conda.anaconda.org/bioconda/linux-64/hhsuite-3.3.0-py37pl526hfa133b6_0.tar.bz2",
+    "bytes": 27855610,
+    "sha256": "fcbfc14a850404536532e8fcda06c8aba3f602f7040ebabbcd2c0b73cf2666f9",
+    "vendor_sha256_available": false,
+    "vendor_md5_matched": true
+  },
+  "boost": {
+    "filename": "libboost-1.73.0-h28710b8_12.tar.bz2",
+    "sha256": "1d69d22e3a27260658d33d22c49dfa78effb9f0d612d2223a6a76dba4e55b171",
+    "url": "https://conda.anaconda.org/anaconda/linux-64/libboost-1.73.0-h28710b8_12.tar.bz2"
+  },
+  "java": {
+    "filename": "OpenJDK21U-jdk_x64_linux_hotspot_21.0.13_9.tar.gz",
+    "sha256": "d7f5d5cf865a2902b70ff549b97586a7d3f234e016f041ab447ea740c7d66d1c",
+    "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13_9.tar.gz"
+  },
+  "prody_wheel": {
+    "filename": "prody-2.6.1-cp314-cp314-linux_x86_64.whl",
+    "sha256": "5f6079daee87d70d8d8c1608891314b5bff0976cca31a7e8eaacbcfd76ca6bb5",
+    "url": "https://pypi.org/project/ProDy/2.6.1/",
+    "source_sha256": "911a8ca3ea7c5f8cd1a9c632e7d7f6e09ea1937db84d147030d08ff8c44b200b",
+    "build": "tools/build_prody.py; native Linux glibc build, rebuild on a different ABI"
+  }
+}

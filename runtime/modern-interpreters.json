@@ -1,0 +1,21 @@
+{
+  "schema": "dreamm-modern-interpreters/1",
+  "date": "2026-11-16",
+  "artifacts": [
+    {
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261110/cpython-3.14.10%2B20261110-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      "filename": "cpython-3.14.10+20261110-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      "bytes": 36875876,
+      "sha256": "c2ff2e97422f5d3896a16e0317fd212ba977bbf2688d93a6f7a03d817506bd30",
+      "reused": false
+    },
+    {
+      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.13-linux-x86_64.tar.gz",
+      "filename": "julia-1.10.13-linux-x86_64.tar.gz",
+      "bytes": 175038520,
+      "sha256": "f2bfa080db29b50a9bf250f69e9acdcfd8b7c49409dee5e55588f986706fb8bd",
+      "reused": false
+    }
+  ],
+  "scientific_release_qualified": false
+}

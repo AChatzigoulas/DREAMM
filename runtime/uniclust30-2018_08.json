@@ -1,0 +1,98 @@
+{
+  "release": "2018_08",
+  "prefix": "uniclust30_2018_08",
+  "fingerprint": "f72a4125fe124e9dfecbb53bebae5cdbad5eb7371e0b379f07661179ca52c751",
+  "files": [
+    {
+      "name": "uniclust30_2018_08.cs219",
+      "kind": "regular",
+      "bytes": 4044015407,
+      "sha256": "781af2ce906a7e2ea99c1ac011d8c45c6f0af16dfe4413ba9fd930261e7c0bc3",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08.cs219.sizes",
+      "kind": "regular",
+      "bytes": 19,
+      "sha256": "f2d0534a1d5338eaaed2dd750192ae0ca4d9e98d2eb4d86d11edef7ecdc88f49",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_a3m.ffdata",
+      "kind": "regular",
+      "bytes": 69490273138,
+      "sha256": "8d83d88a42a3fbf385abeacabbb2f7fb8ef8d1995b5e9e0a6146a8f4ecbd7da0",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_a3m.ffindex",
+      "kind": "regular",
+      "bytes": 375805833,
+      "sha256": "8ca0cf5014a72b616978178a7df3942a394c15d782e5e180ba5b0f97cdff5c89",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_a3m_db",
+      "kind": "link",
+      "bytes": 29,
+      "sha256": null,
+      "target": "uniclust30_2018_08_a3m.ffdata"
+    },
+    {
+      "name": "uniclust30_2018_08_a3m_db.index",
+      "kind": "regular",
+      "bytes": 436453157,
+      "sha256": "754d8e49ddf3b3b72d1c53ccf1acae16868876bb9c6e1a3729fdb2be94c45e81",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_cs219.ffdata",
+      "kind": "regular",
+      "bytes": 3860466139,
+      "sha256": "b2b05c82fe1360489c95781b61ff26f8b616f71ce2c2eb777076f74f2630c9b3",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_cs219.ffindex",
+      "kind": "regular",
+      "bytes": 356545673,
+      "sha256": "f00b7d1d050149c1b27cc347ace8396fc76e38a0c2c1895c39cabaf7bf0ee816",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_hhm.ffdata",
+      "kind": "regular",
+      "bytes": 14171782777,
+      "sha256": "ad0b0fa87435a893792abb8c5c4881609fbefb2559496541fde5d6ba1dce949e",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_hhm.ffindex",
+      "kind": "regular",
+      "bytes": 8167108,
+      "sha256": "1edb2e7077f5150ba6f001e95b86f1acc2073cd19a556067f0c1a55db3a04b61",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_hhm_db",
+      "kind": "link",
+      "bytes": 29,
+      "sha256": null,
+      "target": "uniclust30_2018_08_hhm.ffdata"
+    },
+    {
+      "name": "uniclust30_2018_08_hhm_db.index",
+      "kind": "regular",
+      "bytes": 9427452,
+      "sha256": "9df806ebd3382ebf4f0e44b4df874c646fdfef193172046171b544252055969d",
+      "target": null
+    },
+    {
+      "name": "uniclust30_2018_08_md5sum",
+      "kind": "regular",
+      "bytes": 767,
+      "sha256": "b37fa55e6436e2c403a4a68f2e6995f376a147e6d8c4f4e3cf4038d2d6493d96",
+      "target": null
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/AbsoluteLayout.jar",
+    "bytes": 2903,
+    "sha256": "1f60f162cce46e91e19d47c2c0371fe8e6529825c6578f04b8bbb28db0b48a52"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/Jama-1.0.2.jar",
+    "bytes": 32775,
+    "sha256": "03f7d0c158060f828e796b8984978159f6511205de937fce195807a9d8cd1fb8"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/cdk-1-5-10.jar",
+    "bytes": 25853538,
+    "sha256": "38a4d1dfaf92ab0bd14f24b9712756a187f6fc3a261682bd2489812ece9ad775"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/jcommon-1.0.15.jar",
+    "bytes": 309294,
+    "sha256": "acf524cbcd1ba61db2593b16b75a35fc1c7c58fd4d2d36e16ebb585d0f2cc509"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/jfreechart-1.0.12.jar",
+    "bytes": 1368681,
+    "sha256": "b90e35874f89cf910c20214dce84c4906a09b908e4761ac32e248fe1b36102c3"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/jh.jar",
+    "bytes": 532625,
+    "sha256": "189d6eb0987757a791372f60f9b3e3c7fd8b944ff32a8d517fcc92fd4f143639"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/jhall.jar",
+    "bytes": 589910,
+    "sha256": "230dc754b0ac8f47eac861a7c43b030d59d040e7cd40ce7c4abcb0942fef8ae8"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/jhbasic.jar",
+    "bytes": 399046,
+    "sha256": "cb6d6ef0af142925ce8093cf6f9f0b9993e0feb1b5c9c89fddfc43b8631abe68"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/jsearch.jar",
+    "bytes": 176622,
+    "sha256": "1390e8d1328bb62c62fbfaf6021d7148d15219dff6a3f392a4f10a9fc495f23e"
+  },
+  {
+    "source_commit": "481055593c5676fb8f2a29c13e776782d772e527",
+    "path": "dreamm/ML/ProtDCal_v4.5/lib/liquidlnf.jar",
+    "bytes": 373967,
+    "sha256": "ccb92be49654f18a88f815271f1b4c9b3b8e25b09e3595df806ce2c6a762e54d"
+  }
+]

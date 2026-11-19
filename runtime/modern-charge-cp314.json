@@ -1,0 +1,88 @@
+{
+  "schema": "dreamm-modern-wheels/1",
+  "profile": "charge-cp314-candidate1",
+  "python": "3.14.10",
+  "scientific_release_qualified": false,
+  "wheels": [
+    {
+      "name": "certifi",
+      "version": "2026.10.23",
+      "filename": "certifi-2026.10.23-py3-none-any.whl",
+      "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "bytes": 135082,
+      "url": "https://files.pythonhosted.org/packages/32/d1/a3652fe2c19134d0d15922177821d863cbd7e842d53a21bbe7e8e3a1b5ac/certifi-2026.10.23-py3-none-any.whl"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "filename": "charset_normalizer-3.5.2-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "34276fd796040bf0993ab33a369aa572e6979c7aab225a88893667ad8eac8f7a",
+      "bytes": 255056,
+      "url": "https://files.pythonhosted.org/packages/18/24/bad3ac4271589df29cf5ce2f5ae490518a5739358052bd0d61209e6fea54/charset_normalizer-3.5.2-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
+    },
+    {
+      "name": "idna",
+      "version": "3.20",
+      "filename": "idna-3.20-py3-none-any.whl",
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "bytes": 69583,
+      "url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl"
+    },
+    {
+      "name": "mmcif-pdbx",
+      "version": "2.1.0",
+      "filename": "mmcif_pdbx-2.1.0-py3-none-any.whl",
+      "sha256": "b52cc4063f57fa5f982c693a3dc394aaf7104054d68d7a2b4d26920950ea01a7",
+      "bytes": 19972,
+      "url": "https://files.pythonhosted.org/packages/89/26/0bd767ced9e87a189041fe8469d7e9167f04025cbdceda4eb9ba63e1a8e2/mmcif_pdbx-2.1.0-py3-none-any.whl"
+    },
+    {
+      "name": "numpy",
+      "version": "2.5.5",
+      "filename": "numpy-2.5.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "c48960d420e90cf305cb1fde0d4e6082cc90512cda87a9acf0b6e04e91cf4abe",
+      "bytes": 15718051,
+      "url": "https://files.pythonhosted.org/packages/a4/1f/fcdce1061fba2bfb2e9bfda01fbd8132d5f7522a4f7c8e2b2f629d54ee38/numpy-2.5.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl"
+    },
+    {
+      "name": "pdb2pqr",
+      "version": "3.8.0",
+      "filename": "pdb2pqr-3.8.0-py3-none-any.whl",
+      "sha256": "e4bb6a51bd40faaf3a9c012c2a5057cb4e0afbb927c7e6706852172d115a253e",
+      "bytes": 210514,
+      "url": "https://files.pythonhosted.org/packages/e5/c0/462260c296af8bd0355777c5b75eaa9634db6bae2b95ab75d0d38cd70bac/pdb2pqr-3.8.0-py3-none-any.whl"
+    },
+    {
+      "name": "propka",
+      "version": "3.5.1",
+      "filename": "propka-3.5.1-py3-none-any.whl",
+      "sha256": "2df2d81adc9205113a0e6f9d96b06b46e29716bc3a71223075dd396e0eefdfc3",
+      "bytes": 104123,
+      "url": "https://files.pythonhosted.org/packages/71/0e/5f70ba04fd85495afb0808654a09abfbede4414dd33e3b711c9023e2a993/propka-3.5.1-py3-none-any.whl"
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2",
+      "filename": "requests-2.34.2-py3-none-any.whl",
+      "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+      "bytes": 73075,
+      "url": "https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "bytes": 45571,
+      "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.8.0",
+      "filename": "urllib3-2.8.0-py3-none-any.whl",
+      "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "bytes": 135717,
+      "url": "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl"
+    }
+  ]
+}

@@ -1,69 +1,22 @@
-# About DREAMM
-DREAMM provides a fast and robust prediction of protein-membrane interfaces for peripheral membrane proteins using ensemble machine learning. DREAMM is also available as a [web-server](https://dreamm.ni4os.eu/).
+# DREAMM v1.1
 
-## Getting Started
-### Prerequisites
-We recommend installing Miniconda on your machine to better manage python packages and environments.
+DREAMM predicts membrane-binding residues in peripheral membrane proteins. Ensemble modes use the membrane prediction of the reference structure to predict and rank potential binding sites.
 
-We recommend installing DREAMM in a new conda environment (see <a href="#Installation">Installation</a>). 
+## Install v1.1
 
-Java is also necessary to be installed on your machine as DREAMM utilizes also [ProtDCal](https://protdcal.zmb.uni-due.de/), which is written in java, for feature extraction.
+Follow the [Linux installation guide](INSTALL.md) to install the pinned runtime with `tools/install.py`. Choose the basic profile for M1 and M2 or the full profile for M1–M5.
 
-Lastly, you have to download [Uniclust30_2018_08_hhsuite](http://wwwuser.gwdg.de/~compbiol/uniclust/2018_08/) database, which is necessary to generate conservation scores (may take a while to download).
+## Run DREAMM
 
-### Installation
-1. Create a new conda environment, installing all necessary python libraries
-```
-(base) user@computer:~$ conda create -n dreamm moleculekit pdb2pqr biopython prody mdanalysis scikit-learn dssp msms hhsuite lightgbm mlxtend -c acellera -c anaconda -c insilichem -c conda-forge -c salilab -c bioconda
-```
-2. Activate the environment
-```
-(base) user@computer:~$ conda activate dreamm
-```
-3. Install freesasa using ```pip```
-```
-(dreamm) user@computer:~$ pip install freesasa
-```
-4. Clone the DREAMM repo
-```
-(dreamm) user@computer:~$ git clone https://github.com/zoecournia/DREAMM
-```
-5. Make dreamm.py executable
-```
-(dreamm) user@computer:~$ chmod +x DREAMM/dreamm/dreamm.py
-```
-6. To use DREAMM from any directory, place the following in the end of your .bashrc file
-```
-export DREAMM="/home/USER/DREAMM/dreamm" #Replace USER with your username 
-alias dreamm="$DREAMM/dreamm.py"
+```sh
+dreamm run -i 1RLW -c A                       # M1, PDB ID and optional author chains
+dreamm run --mode M2 -i protein.pdb           # First model of a local structure
+dreamm run --mode M3 -i 2KS4                  # Models from a deposited NMR ensemble
+dreamm run --mode M4 -i ensemble.pdb          # Local structure or ensemble
+dreamm run --mode M5 -i 1RLW --additional 2    # Reference plus two generated frames
 ```
 
-## Usage
-```
-(dreamm) user@computer:~$ dreamm -h
-```
-
-Input Parameters:
-```
-  -i INPUT, --input INPUT                           The 4 letter PDB code or the path to the PDB file
-  -c CHAIN [CHAIN ...], --chain CHAIN [CHAIN ...]   The chain or chains. Default is None
-  -d DATABASE, --database DATABASE                  The path to the Uniclust30_2018_8 database.
-  -p PROCESSES, --processes PROCESSES               The number of CPUs. Default is All minus 1
- ```
-
-## Example
-```
-(dreamm) user@computer:~$ dreamm -i 5BZZ -c A -d /media/mydata/Databases/uniclust30_2018_08_hhsuite/uniclust30_2018_08/ -p 16
-```
-Results are output to the terminal and written to DREAMM/dreamm/outputs/prepared/fixed/5BZZ.csv, e.g.,
-```
-The residues:
- A  L   42  0
- A  K  263  0
- A  M  264  0
-are predicted to insert the membrane.
-```
-where the first column indicates the chain, the second the one-letter code amino acid type, the third the resid, and the fourth indicates if the prediction is near N- or C-terminal, or near missing loops, which might be a possible false prediction (0 for no, and 1 for yes).
+An omitted chain selector uses all admitted protein chains. Use `-c A B` for selected chains. Predictions are computational. The [validation scope](INSTALL.md#validation-scope) records the tested platforms and input paths. The [developer guide](DEVELOPERS.md) maps the original scientific code to the standalone modules. Review the [third-party terms](THIRD_PARTY_NOTICES.md) before obtaining external prerequisites or preparing a distribution.
 
 ## License
 Distributed under the GPL-3.0 License. See `LICENSE` for more information.
@@ -74,16 +27,20 @@ For any bugs or questions on usage feel free to use the issue tracker of this gi
 
 ## Citing DREAMM
 
-If you use DREAMM in your publication please cite:
+If you use DREAMM in your publication please cite the following publication.
 
 Alexios Chatzigoulas and Zoe Cournia.
 **Predicting protein–membrane interfaces of peripheral membrane proteins using ensemble machine learning.**
 *Briefings in Bioinformatics*, **2022**, bbab518.
 [doi:10.1093/bib/bbab518](https://academic.oup.com/bib/advance-article/doi/10.1093/bib/bbab518/6527274)
 
-If you use also use DREAMM web-server please cite:
+For the DREAMM web server, also cite the following publication.
 
 Alexios Chatzigoulas and Zoe Cournia.
 **DREAMM: A web-based server for drugging protein-membrane interfaces as a novel workflow for targeted drug design.**
 *Bioinformatics*, **2022**, btac680,
 [doi:10.1093/bioinformatics/btac680](https://doi.org/10.1093/bioinformatics/btac680)
+
+## Historical documentation
+
+The original implementation and setup instructions are preserved in the [historical README](https://github.com/AChatzigoulas/DREAMM/blob/481055593c5676fb8f2a29c13e776782d772e527/README.md). That guide describes the legacy release. For v1.1, use the [guided installer](INSTALL.md).
