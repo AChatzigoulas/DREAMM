@@ -4,7 +4,13 @@ DREAMM predicts membrane-binding residues in peripheral membrane proteins. Ensem
 
 ## Install v1.1
 
-Follow the [Linux installation guide](INSTALL.md) to install the pinned runtime with `tools/install.py`. Choose the basic profile for M1 and M2 or the full profile for M1–M5.
+From a Linux Git checkout, run
+
+```sh
+./install.sh
+```
+
+Choose basic for M1/M2 or full for M1–M5. See the [Linux installation guide](INSTALL.md) for the separately obtained MSMS archive, UniClust30 storage, and platform requirements.
 
 ## Run DREAMM
 

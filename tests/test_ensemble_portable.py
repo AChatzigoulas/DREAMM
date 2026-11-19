@@ -19,18 +19,34 @@ class SourceTests(unittest.TestCase):
         raw=atom+atom[:16]+b'A'+atom[17:]+b'END\n'
         with self.assertRaises(ValueError):prepare_source(raw,expected_sha256=digest(raw),mode='M4')
 
+    def test_mmcif_two_character_component_preserves_fixed_width_pdb_identity(self):
+        from types import SimpleNamespace as Object
+        from dreamm_ensemble.frames import project_mmcif
+
+        fields = {'auth_asym_id':'A','auth_seq_id':'200','auth_comp_id':'CD','auth_atom_id':'CD',
+                  'type_symbol':'CD','label_alt_id':None,'pdbx_PDB_ins_code':None,
+                  'Cartn_x':'29.940','Cartn_y':'38.682','Cartn_z':'15.647','occupancy':'1.00',
+                  'B_iso_or_equiv':'52.12'}
+        residue = Object(auth_chain='A', auth_seq='200', source_resname='CD')
+        atom = Object(model_index=0, record='HETATM', residue=residue, fields=fields, uid='cd',
+                      field=lambda key:Object(value=fields[key]))
+        projected, crosswalk = project_mmcif(Object(model_ids=('1',), atoms=(atom,)))
+        self.assertEqual(len(crosswalk), 1)
+        self.assertEqual(projected.atoms[0].residue.source_resname, ' CD')
+        self.assertEqual(projected.atoms[0].xyz_raw, ('29.940','38.682','15.647'))
+
 
 @unittest.skipUnless(os.name=='posix','POSIX checkpoint boundary')
 class CheckpointTests(unittest.TestCase):
-    def test_transient_file_disappearance_does_not_weaken_existing_bounds(self):
+    def test_scratch_sampling_tolerates_transient_file_disappearance(self):
         from unittest.mock import patch
-        from dreamm.trusted import scratch_usage
+        from dreamm.process import scratch_size
         with tempfile.TemporaryDirectory() as t:
             root=Path(t)
-            with patch('dreamm.trusted.os.walk',return_value=[(t,[],['already-deleted'])]):
-                self.assertEqual(scratch_usage(root),0)
+            with patch('dreamm.process.os.walk',return_value=[(t,[],['already-deleted'])]):
+                self.assertEqual(scratch_size(root),0)
             (root/'oversized').write_bytes(b'x'*(8*1024**2+1))
-            with self.assertRaises(ValueError):scratch_usage(root)
+            self.assertEqual(scratch_size(root), 8*1024**2+1)
     def test_hash_and_unlisted_symlink_rejected(self):
         from dreamm.ensemble_local import inventory
         with tempfile.TemporaryDirectory() as t:

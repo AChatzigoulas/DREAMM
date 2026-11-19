@@ -94,7 +94,7 @@ def bind_reference(raw,original):
             'reference model differs from the M1 source; refusing positional or proximity joins')
 
 
-def prepare_frames(raw_frames,ref,spans,*,generated=False):
+def prepare_frames(raw_frames,ref,spans,work,*,generated=False):
     from moleculekit.molecule import Molecule
     from moleculekit.tools.preparation import systemPrepare
     import numpy as np
@@ -115,9 +115,9 @@ def prepare_frames(raw_frames,ref,spans,*,generated=False):
         require(len(rows)==len(result) and result.keys()==expected.keys(),
                 'ENSEMBLE_MAPPING_UNPROVEN','prepared C-alpha identity differs before alignment')
         return result
-    for directory in ('source-frames','prepared','aligned','bound/frames'):Path('/work',directory).mkdir(parents=True)
+    for directory in ('source-frames','prepared','aligned','bound/frames'):(work/directory).mkdir(parents=True)
     for i,raw in enumerate(raw_frames):
-        name=f'frame-{i:02d}.pdb';source=Path('/work/source-frames')/name;source.write_bytes(raw)
+        name=f'frame-{i:02d}.pdb';source=(work/'source-frames')/name;source.write_bytes(raw)
         require(ca_identity(raw)==expected,'ENSEMBLE_MAPPING_UNPROVEN','source frame residue coverage differs')
         with measured('prepare.frame-'+str(i),spans):
             molecule=filter_reference(source)
@@ -127,12 +127,12 @@ def prepare_frames(raw_frames,ref,spans,*,generated=False):
                 # create THR-HG1/ASP covalent links from a close H contact.
                 require('C' not in expected.values(),'ENSEMBLE_INPUT_INVALID','1RLW chemistry correspondence differs')
                 settings['guess_bonds']=False
-            Path('/work',f'preparation-settings-{i:02d}.json').write_bytes(canonical(settings))
+            (work/f'preparation-settings-{i:02d}.json').write_bytes(canonical(settings))
             molecule,detected,details=systemPrepare(molecule,**settings)
-            Path('/work',f'preparation-specs-{i:02d}.json').write_bytes(canonical(detected))
-            details.to_csv(Path('/work')/f'preparation-details-{i:02d}.csv',index=False)
+            (work/f'preparation-specs-{i:02d}.json').write_bytes(canonical(detected))
+            details.to_csv(work/f'preparation-details-{i:02d}.csv',index=False)
             ca_indices=alignment_indices(molecule)
-            molecule.center(loc=(0,0,0),sel='all');prepared=Path('/work/prepared')/name;molecule.write(str(prepared))
+            molecule.center(loc=(0,0,0),sel='all');prepared=(work/'prepared')/name;molecule.write(str(prepared))
         with measured('align.frame-'+str(i),spans):
             if reference_molecule is None:
                 reference_molecule=Molecule(str(prepared))
@@ -143,7 +143,7 @@ def prepare_frames(raw_frames,ref,spans,*,generated=False):
                 sel=np.array([ca_indices[key] for key in reference_indices],dtype=int)
                 refsel=np.array(list(reference_indices.values()),dtype=int)
                 molecule.align(sel,reference_molecule,refsel)
-            aligned=Path('/work/aligned')/name;molecule.write(str(aligned))
+            aligned=(work/'aligned')/name;molecule.write(str(aligned))
         native=aligned.read_bytes();lines=native.splitlines(keepends=True);changes=[]
         for j,line in enumerate(lines):
             if not line.startswith((b'ATOM  ',b'HETATM')):continue
@@ -175,76 +175,71 @@ def prepare_frames(raw_frames,ref,spans,*,generated=False):
             'added':[{'prepared_uid':prepared_atoms[k].uid,'source_ancestry':None} for k in sorted(prepared_atoms.keys()-common)]}
         from dreamm_m1.local_budget import artifact_bytes
         encoded=canonical(atom_map);require(len(encoded)<=artifact_bytes(),'RESOURCE_LIMIT','atom correspondence receipt exceeds bound')
-        Path('/work',f'preparation-map-{i:02d}.json').write_bytes(encoded)
-        destination=Path('/work/bound/frames')/name;destination.write_bytes(projected)
+        (work/f'preparation-map-{i:02d}.json').write_bytes(encoded)
+        destination=(work/'bound/frames')/name;destination.write_bytes(projected)
         frames.append({'index':i,'name':name,'sha256':digest(projected),'source_sha256':digest(raw),
             'prepared_sha256':digest(prepared.read_bytes()),'aligned_sha256':digest(native),
             'predictor_residue_label_projection':changes})
     return frames
 
 
-def predict(frames,profile,runtime,spans):
+def predict(frames,profile,runtime,spans,work,config):
     from .ensemble_analysis import measured
-    output=Path('/work/p2rank-output');output.mkdir();dataset=Path('/work/dataset.ds')
-    dataset.write_text(''.join('/work/bound/frames/'+f['name']+'\n' for f in frames),encoding='ascii')
-    argv=['/runtime/jdk/bin/java','-Xmx2048m','-XX:ActiveProcessorCount=15','-Djava.awt.headless=true',
-          '-Duser.home=/nonexistent','-Djava.io.tmpdir=/work/tmp',
-          '-DPDB_CACHE_DIR=/work/ccd-cache','-DPDB_DIR=/p2rank/ccd','-cp',
-          ':'.join('/p2rank/'+n for n in runtime['classpath_order']),'cz.siret.prank.program.Main',
+
+    p2rank = Path(config['p2rank'])
+    output = work/'p2rank-output'
+    output.mkdir()
+    dataset = work/'dataset.ds'
+    dataset.write_text(''.join('bound/frames/'+f['name']+'\n' for f in frames), encoding='ascii')
+    cache = work/'ccd-cache'
+    shutil.copytree(p2rank/'ccd/chemcomp', cache/'chemcomp')
+    tmp = work/'tmp'
+    tmp.mkdir(exist_ok=True)
+    java = Path(config['runtime'])/config['roles']['java']
+    argv=[str(java),'-Xmx2048m','-XX:ActiveProcessorCount=15','-Djava.awt.headless=true',
+          '-Duser.home='+os.environ['HOME'],'-Djava.io.tmpdir='+str(tmp),
+          '-DPDB_CACHE_DIR='+str(cache),'-DPDB_DIR='+str(p2rank/'ccd'),'-cp',
+          os.pathsep.join(str(p2rank/n) for n in runtime['classpath_order']),'cz.siret.prank.program.Main',
           'predict',str(dataset)]
     if profile=='alphafold':argv+=['-c','alphafold']
     argv+=['-o',str(output),'-threads','15','-fail_fast','true']
-    require(os.access('/work/ccd-cache',os.W_OK) and os.statvfs('/work/ccd-cache/chemcomp').f_flag & os.ST_RDONLY,
-            'RUNTIME_INVALID','private writable cache holder and immutable CCD contents required')
-    env=dict(os.environ,INSTALL_DIR='/p2rank',PDB_CACHE_DIR='/work/ccd-cache',PDB_DIR='/p2rank/ccd')
-    with measured('p2rank.2.5.1.'+profile,spans),Path('/work/p2rank.stdout').open('xb') as so,Path('/work/p2rank.stderr').open('xb') as se:
-        subprocess.run(argv,env=env,stdin=subprocess.DEVNULL,stdout=so,stderr=se,check=True,timeout=1800)
-    log=_read(Path('/work/p2rank.stdout'))+_read(Path('/work/p2rank.stderr'))
+    env=dict(os.environ,INSTALL_DIR=str(p2rank),PDB_CACHE_DIR=str(cache),PDB_DIR=str(p2rank/'ccd'))
+    with measured('p2rank.2.5.1.'+profile,spans),(work/'p2rank.stdout').open('xb') as so,(work/'p2rank.stderr').open('xb') as se:
+        subprocess.run(argv,cwd=work,env=env,stdin=subprocess.DEVNULL,stdout=so,stderr=se,check=True,
+                       timeout=config['stage_deadlines']['p2rank'])
+    log=_read((work/'p2rank.stdout'))+_read((work/'p2rank.stderr'))
     require(not re.search(br'could not download|download(ing|ed) chem|fallback|UnknownHostException|failed to load structure|NoClassDefFoundError|ClassNotFoundException',log,re.I),
             'ENSEMBLE_INCOMPLETE','P2Rank dependency/chemistry failure')
     expected={f['name']+'_'+role+'.csv' for f in frames for role in ('predictions','residues')}
     require({p.name for p in output.glob('*.csv') if p.name.endswith(('_predictions.csv','_residues.csv'))}==expected,
             'ENSEMBLE_INCOMPLETE','missing, extra or duplicated P2Rank frame output')
-    destination=Path('/work/bound/raw')/profile;destination.mkdir(parents=True)
+    destination=(work/'bound/raw')/profile;destination.mkdir(parents=True)
     for f in frames:
         name=f['name']
         for role in ('predictions','residues'):shutil.copyfile(output/(name+'_'+role+'.csv'),destination/(name+'_'+role+'.csv'))
         shutil.copyfile(output/'visualizations/data'/(name+'_points.pdb.gz'),destination/(name+'_points.pdb.gz'))
-    shutil.copyfile(output/'params.txt',Path('/work/bound/p2rank-effective.txt'))
-    Path('/work/p2rank-invocation.json').write_bytes(canonical({'argv':argv,'profile':profile,
+    shutil.copyfile(output/'params.txt',(work/'bound/p2rank-effective.txt'))
+    (work/'p2rank-invocation.json').write_bytes(canonical({'argv':argv,'profile':profile,
         'science_profile_sha256':runtime['science_profiles'][profile]}))
 
 
-def main():
-    from dreamm_m1.local_budget import local_budget
-    config=_json(_read(Path('/inputs/admission.json')))
-    with local_budget(config['source_bytes'],config['artifact_bytes'],config['scratch']):
-        worker(config)
-
-
 def worker(config):
-    from .trusted_entry import environment
-    from .modern_runtime import enable_imports,verify_python_versions
     from .ensemble_source import prepare_source, select_frame
     from .ensemble_local import analyze
     from . import ensemble_analysis as analysis
-    environment(config)
-    raw=_read(Path('/inputs/data/checkpoint.json'));require(digest(raw)==config['checkpoint_sha256'],
-            'ENSEMBLE_INPUT_INVALID','native intake changed')
-    data=_json(raw);inventory('/inputs/data',data);ref=reference('/inputs/data')
+
+    work, inputs = Path(config['work']), Path(config['inputs'])
+    raw = _read(inputs/'checkpoint.json')
+    require(digest(raw) == config['checkpoint_sha256'], 'ENSEMBLE_INPUT_INVALID', 'native intake changed')
+    data = _json(raw)
+    inventory(inputs, data)
+    ref = reference(inputs)
     require(data['schema']=='dreamm-ensemble-native-input/1' and data['mode'] in ('M3','M4','M5'),
             'ENSEMBLE_INPUT_INVALID','native scientific mode differs')
-    runtime=verify_p2rank('/p2rank',config['p2rank_sha256'])
-    require(os.statvfs('/p2rank').f_flag & os.ST_RDONLY,'RUNTIME_INVALID','immutable P2Rank installation required')
-    inventory('/database',_json(_read(Path('/database/checkpoint.json'))),limit=256*1024**2)
-    require(digest(_read(Path('/database/checkpoint.json')))==config['extensions_sha256'],
-            'RUNTIME_INVALID','export extension changed')
-    enable_imports('/runtime');verify_python_versions('science')
-    import sys
-    sys.path.append('/database/xlsx');Path('/work/tmp').mkdir()
+    runtime = _json(_read(Path(config['p2rank'])/'runtime.json'))
     fmt=data.get('source_format') or ('pdb' if data['mode']=='M4' else 'mmcif')
     suffix='.cif' if fmt=='mmcif' else '.pdb'
-    source=_read(Path('/inputs/data')/('source'+suffix))
+    source=_read(inputs/('source'+suffix))
     if data['mode']=='M5':
         from dataclasses import replace
         from dreamm_ensemble.frames import first_pdb_frame, project_mmcif
@@ -268,25 +263,24 @@ def worker(config):
     if data['pdb_id']:
         from .modern_source import verify_entry_id
         verify_entry_id(source,data['pdb_id'])
-    bind_reference(frames[0],_read(Path('/inputs/data/source-model-0.pdb')))
-    Path('/work/source-manifest.json').write_bytes(canonical(intake));spans=[]
+    bind_reference(frames[0],_read((inputs/'source-model-0.pdb')))
+    (work/'source-manifest.json').write_bytes(canonical(intake));spans=[]
     try:
         generation=None
         if data['mode']=='M5':
-            from .generation import verify_runtime,generate
-            require(os.statvfs('/generation').f_flag & os.ST_RDONLY,'RUNTIME_INVALID','immutable generation installation required')
-            verify_runtime('/generation',config['generation_sha256'])
-            frames,generation=generate(Path('/inputs/data'),ref,data['n_additional'],config,spans,
+            from .generation import generate
+            frames,generation=generate(inputs,ref,data['n_additional'],config,spans,
                 saved=data.get('generation_reuse'),seed=data.get('seed'))
             intake={'schema':'dreamm-M5-source/1','mode':'M5','original_source':intake,
                 'reference_frame_index':0,'analysis_frames':generation['frames'],'n_additional':data['n_additional']}
-            Path('/work/source-manifest.json').write_bytes(canonical(intake))
-        products=prepare_frames(frames,ref,spans,generated=data['mode']=='M5');predict(products,data['profile'],runtime,spans)
-        root=Path('/work/bound');analysis.INPUT=root
+            (work/'source-manifest.json').write_bytes(canonical(intake))
+        products=prepare_frames(frames,ref,spans,work,generated=data['mode']=='M5')
+        predict(products,data['profile'],runtime,spans,work,config)
+        root=(work/'bound');analysis.INPUT=root
         (root/('original-source'+suffix)).write_bytes(source)
         (root/'source-manifest.json').write_bytes(canonical(intake))
         for name in ('source-model-0.pdb','reference-membrane.csv','reference-membrane-and-conservation.json'):
-            shutil.copyfile(Path('/inputs/data')/name,root/name)
+            shutil.copyfile(inputs/name,root/name)
         geometries=[analysis.frame_geometry(f,ref) for f in products]
         count=0
         for frame,geo in zip(products,geometries):count+=len(analysis.filter_frame(data['profile'],frame,geo)[0])
@@ -299,8 +293,8 @@ def worker(config):
             'files':{p.relative_to(root).as_posix():{'bytes':p.stat().st_size,'sha256':digest(_read(p))}
                      for p in root.rglob('*') if p.is_file()}}
         (root/'checkpoint.json').write_bytes(canonical(cp));checkpoint(root,digest(canonical(cp)))
-        Path('/work/native-stage-timings.json').write_bytes(canonical(spans))
+        (work/'native-stage-timings.json').write_bytes(canonical(spans))
         analyze(cp,root,config,reused_p2rank=False,spans=spans)
     finally:
-        if not Path('/work/scientific-complete.json').exists():
-            Path('/work/native-stage-timings.json').write_bytes(canonical(spans))
+        if not (work/'scientific-complete.json').exists():
+            (work/'native-stage-timings.json').write_bytes(canonical(spans))

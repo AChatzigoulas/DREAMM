@@ -21,7 +21,10 @@ from dreamm_m1.capture import _parents
 
 def sha(path):
     with Path(path).open('rb') as stream:
-        return hashlib.file_digest(stream,'sha256').hexdigest()
+        alg = hashlib.sha256()
+        for block in iter(lambda: stream.read(1024**2), b''):
+            alg.update(block)
+        return alg.hexdigest()
 
 
 def command(python, script, *args, site=False):
@@ -48,23 +51,15 @@ def atomic(path, data, executable=False):
 def host():
     if sys.platform != 'linux' or platform.machine() != 'x86_64' or os.geteuid() == 0:
         raise ValueError('Install as a normal user on x86-64 Linux')
-    if sys.version_info < (3,12):
-        raise ValueError('Python 3.12 or later is required to run the installer')
-    libc, version = os.confstr('CS_GNU_LIBC_VERSION').split()
-    if libc != 'glibc' or tuple(map(int,version.split('.'))) < (2,35):
-        raise ValueError('The pinned native build requires glibc 2.35 or newer. Ubuntu 22.04 is the qualified baseline.')
-    missing = [name for name in ('git','gcc','g++','make','bwrap') if not shutil.which(name)]
+    if sys.version_info < (3,9):
+        raise ValueError('Python 3.9 or later is required to bootstrap the pinned Python runtime')
+    missing = [name for name in ('git','gcc','g++','make','tar') if not shutil.which(name)]
     if missing:
         raise ValueError('Install the host prerequisites first: '+', '.join(missing))
-    test = subprocess.run([shutil.which('bwrap'),'--unshare-all','--ro-bind','/usr','/usr',
-                           '--ro-bind','/lib64','/lib64','--ro-bind','/lib','/lib',
-                           '--die-with-parent','--','/usr/bin/true'],
-                          capture_output=True,timeout=15)
-    if test.returncode:
-        raise ValueError('Unprivileged bubblewrap namespaces are unavailable: '+test.stderr.decode(errors='replace').strip()[:500])
 
 
 def portable_python(root,cache):
+    from dreamm.installation import install_archive
     row=json.loads((ROOT/'runtime/modern-interpreters.json').read_bytes())['artifacts'][0]
     path=cache/row['filename']
     if path.stat().st_size!=row['bytes'] or sha(path)!=row['sha256']:
@@ -78,12 +73,10 @@ def portable_python(root,cache):
             raise ValueError('Existing build Python receipt differs. Select a fresh installation prefix.')
         return python
     tree.mkdir(mode=0o700)
-    with tarfile.open(path,'r:gz') as archive:
-        members=archive.getmembers()
-        if (len(members)>15000 or sum(item.size for item in members)>512*1024**2
-                or any(item.name.split('/')[0]!='python' for item in members)):
-            raise ValueError('Portable Python archive layout differs')
-        archive.extractall(tree,members=members,filter='data')
+    install_archive(path, tree, {**row, 'format':'tar-gz-strip-one', 'destination':'python'},
+                    {}, {}, {}, collect=True)
+    subprocess.run([str(python),'-I','-S','-c','import ssl, sys; assert sys.version_info[:3] == (3,14,10)'],
+                   check=True,timeout=30)
     write_private(marker,(row['sha256']+' '+sha(python)+'\n').encode('ascii'))
     return python
 
@@ -116,27 +109,52 @@ def install(args):
     runtime=root/'runtime'
     def ready(path,receipt):
         return (path/receipt).is_file()
-    if not ready(runtime,'installation.json'):
-        if not args.asset_repo or not args.msms_archive:
-            raise ValueError('A fresh runtime needs --asset-repo and the separately licensed --msms-archive')
+    if not ready(runtime,'installation.json') and not args.msms_archive:
+        name = 'msms_i86_64Linux2_2.6.1.tar.gz'
+        candidates = [folder/name for folder in (Path.home()/'Downloads', root/'cache')]
+        if args.reuse_downloads:
+            candidates.insert(0, Path(args.reuse_downloads)/name)
+        args.msms_archive = next((str(path) for path in candidates if path.is_file()), None)
+        if not args.msms_archive and sys.stdin.isatty():
+            args.msms_archive = input('Path to the separately licensed vendor MSMS archive: ').strip() or None
+        if not args.msms_archive:
+            raise ValueError('Obtain vendor MSMS 2.6.1 under its licence and supply --msms-archive. See INSTALL.md.')
+    args.asset_repo = args.asset_repo or str(ROOT)
     generation=root/'generation'
-    if args.profile=='full' and not ready(generation,'runtime.json') and not args.chimera_installer:
-        raise ValueError('Full installation requires the separately licensed --chimera-installer')
     db=Path(args.database).absolute() if args.database else None
     db_lock=ROOT/'runtime/uniclust30-2018_08.json'
     if args.database_volume:
         db=Path(args.database_volume).absolute()/PREFIX
         if not db.is_dir():
             command(sys.executable,'tools/acquire_database.py','--root',db.parent,'--manifest',db_lock)
+    if db is None and cfg.is_file() and old.get('database'):
+        db = Path(old['database'])
+    if db is None:
+        for candidate in (os.environ.get('DREAMM_DATABASE'), str(root/'database'/PREFIX)):
+            if candidate and Path(candidate).is_dir():
+                db = Path(candidate).absolute()
+                break
+    if db is None and sys.stdin.isatty():
+        print('UniClust30 2018_08 needs 86.4 GiB unpacked and about 140 GiB during download.')
+        value = input('Path to an existing UniClust30 directory (Enter to download): ').strip()
+        if value:
+            db = Path(value).expanduser().absolute()
+        else:
+            volume = input('Local download directory with about 140 GiB free (Enter to exit): ').strip()
+            if volume:
+                db = Path(volume).expanduser().absolute()/PREFIX
+                if not db.is_dir():
+                    command(sys.executable,'tools/acquire_database.py','--root',db.parent,'--manifest',db_lock)
     if db is None or not db.is_dir():
-        raise ValueError('Select a local database with --database or supply 140 GiB on --database-volume')
+        raise ValueError('Supply the verified UniClust30 directory with --database, or a download destination with --database-volume.')
     caches=root/'cache';caches.mkdir(mode=0o700,exist_ok=True)
     p2rank=root/'p2rank'
     extras=root/'exports-runtime'
     full_missing=args.profile=='full' and any(not ready(path,receipt) for path,receipt in (
         (p2rank,'runtime.json'),(extras,'checkpoint.json'),(generation,'runtime.json')))
     if not ready(runtime,'installation.json') or full_missing:
-        command(sys.executable,'tools/acquire_runtime.py','--output',caches,*(['--ensemble'] if full_missing else []))
+        command(sys.executable,'tools/acquire_runtime.py','--output',caches,*(['--ensemble'] if full_missing else []),
+                *(['--reuse-downloads',args.reuse_downloads] if args.reuse_downloads else []))
     if not ready(runtime,'installation.json'):
         python=portable_python(root,caches)
         env=root/'build-env'
@@ -149,7 +167,7 @@ def install(args):
         msms=Path(args.msms_archive).absolute()
         if msms.name!='msms_i86_64Linux2_2.6.1.tar.gz':
             raise ValueError('Supply the official MSMS archive with its original filename')
-        command(sys.executable,'tools/install_trusted.py','--cache',caches,'--cache',prody/'wheels',
+        command(python,'tools/install_trusted.py','--cache',caches,'--cache',prody/'wheels',
                '--cache',msms.parent,'--output',runtime,'--asset-repo',Path(args.asset_repo).absolute(),
                '--prody-build-receipt',prody/'build.json','--prody-build-sha256',sha(prody/'build.json'),
                *(['--resume-incomplete'] if runtime.exists() else []))
@@ -168,21 +186,22 @@ def install(args):
     atomic(Path(configuration['database_manifest']),db_lock.read_bytes())
     if args.profile=='full':
         if not ready(p2rank,'runtime.json'):
-            command(sys.executable,'tools/install_p2rank.py',*lock_options('p2rank251-pdb-only.json'),
+            command(python,'tools/install_p2rank.py',*lock_options('p2rank251-pdb-only.json'),
                     '--cache',caches,'--output',p2rank)
         if not ready(extras,'checkpoint.json'):
             command(python,'tools/install_ensemble_extras.py',*lock_options('ensemble-exports-cp314.json'),
                     '--cache',caches,'--output',extras)
         if not ready(generation,'runtime.json'):
             if not ready(generation,'installation.json'):
-                command(sys.executable,'tools/install_generation.py','--chimera-installer',Path(args.chimera_installer).absolute(),
+                command(python,'tools/install_generation.py',
+                        *(['--chimera-installer',Path(args.chimera_installer).absolute()] if args.chimera_installer else []),
                         '--julia-archive',caches/'julia-1.10.13-linux-x86_64.tar.gz','--output',generation)
             if not (root/'julia-install/installation-process.json').is_file():
-                command(sys.executable,'tools/qualify_generation.py','--root',generation,'--evidence',root/'julia-install')
+                command(python,'tools/qualify_generation.py','--root',generation,'--evidence',root/'julia-install')
             qualify=_json(_read(root/'julia-install/installation-process.json'))
             if qualify.get('returncode')!=0:
                 raise ValueError('Julia installation did not complete. See the julia-install receipt.')
-            command(sys.executable,'tools/finalize_generation.py','--root',generation)
+            command(python,'tools/finalize_generation.py','--root',generation)
         verify_p2rank(p2rank,sha(p2rank/'runtime.json'))
         inventory(extras,_json(_read(extras/'checkpoint.json')),limit=256*1024**2)
         verify_runtime(generation,sha(generation/'runtime.json'))
@@ -191,31 +210,52 @@ def install(args):
             generation_runtime=str(generation),generation_sha256=sha(generation/'runtime.json'))
     if (root/'dreamm-v1.1.pyz.pending').exists():
         raise ValueError('An interrupted CLI build exists. Preserve it and use a fresh installation prefix.')
-    command(sys.executable,'build.py','--output',root/'dreamm-v1.1.pyz.pending')
+    command(python,'build.py','--output',root/'dreamm-v1.1.pyz.pending')
     os.replace(root/'dreamm-v1.1.pyz.pending',root/'dreamm-v1.1.pyz')
-    bin_dir=root/'bin';bin_dir.mkdir(mode=0o700,exist_ok=True)
+    default_prefix = Path.home()/'.local/share/dreamm'
+    bin_dir = Path.home()/'.local/bin' if root == default_prefix else root/'bin'
+    bin_dir.mkdir(mode=0o700,parents=True,exist_ok=True)
+    _parents(bin_dir)
     q=shlex.quote
-    launch=f'#!/bin/sh\nexec {q(str(python))} -I -S -B {q(configuration["application"])} "$@"\n'
-    # Config is discovered automatically by the normal CLI. A nondefault
-    # config remains available through --config for independent installs.
-    atomic(bin_dir/'dreamm',launch.encode('utf-8'),executable=True)
+    launcher = bin_dir/'dreamm'
+    marker = b'#!/bin/sh\n# Installed by DREAMM\n'
+    legacy = f'#!/bin/sh\nexec {q(str(python))} -I -S -B {q(configuration["application"])} "$@"\n'.encode()
+    if launcher.exists() or launcher.is_symlink():
+        if launcher.is_symlink() or not launcher.is_file():
+            raise ValueError('Move the existing launcher aside or choose a separate installation prefix: '+str(launcher))
+        existing = launcher.read_bytes()
+        if not existing.startswith(marker) and existing != legacy:
+            raise ValueError('Existing launcher belongs to a different installation: '+str(launcher))
+    launch=f'export DREAMM_CONFIG={q(str(cfg))}\nexec {q(str(python))} -I -S -B {q(configuration["application"])} "$@"\n'
+    atomic(launcher,marker+launch.encode('utf-8'),executable=True)
     atomic(cfg,(json.dumps(configuration,sort_keys=True,indent=2)+'\n').encode('utf-8'))
-    print('Installed DREAMM v1.1. Add '+str(bin_dir)+' to PATH, then run dreamm --help.')
+    # Honour the exact selected config for independent installs without changing global PATH.
+    print('Installed DREAMM v1.1.')
+    if str(bin_dir) not in os.environ.get('PATH','').split(os.pathsep):
+        print('Run: export PATH='+q(str(bin_dir))+':"$PATH"')
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--profile',choices=('basic','full'),default='basic')
+    parser.add_argument('--profile',choices=('basic','full'),help='basic (M1/M2) or full (M1–M5)')
     parser.add_argument('--prefix',default=str(Path.home()/'.local/share/dreamm'))
     parser.add_argument('--config')
-    database=parser.add_mutually_exclusive_group(required=True)
+    database=parser.add_mutually_exclusive_group()
     database.add_argument('--database',help='already installed exact UniClust30 2018_08 directory')
     database.add_argument('--database-volume',help='download and verify UniClust30 onto this local volume')
     parser.add_argument('--msms-archive',help='original vendor download acquired under its licence')
-    parser.add_argument('--chimera-installer',help='original UCSF Linux headless installer for full profile')
+    parser.add_argument('--chimera-installer',help='optional separately obtained UCSF 1.19 fallback for M5')
+    parser.add_argument('--reuse-downloads',type=Path,help='reuse archives from this directory after SHA256 verification')
     parser.add_argument('--asset-repo',help='local, lawfully acquired original DREAMM scientific asset checkout')
     args=parser.parse_args()
     root=Path(args.prefix).absolute()
+    if args.profile is None:
+        args.profile = 'basic'
+        if sys.stdin.isatty() and not Path(args.config or config_path()).is_file():
+            profile = input('DREAMM profile: basic (M1/M2) or full (M1–M5) [basic]: ').strip().lower()
+            if profile not in ('', 'basic', 'full'):
+                parser.error('profile must be basic or full')
+            args.profile = profile or 'basic'
     try:
         root.mkdir(mode=0o700,parents=True,exist_ok=True)
         _parents(root)

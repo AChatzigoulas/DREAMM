@@ -106,11 +106,11 @@ class ModernRunBoundaryTests(unittest.TestCase):
 
     def test_stage_commands_are_fixed_and_do_not_accept_arbitrary_tools(self):
         for kind in ('preparation','dynamics','inference'):
-            argv=pipeline.stage_argv('/runtime/science/bin/python3.14',kind,'/work/request.json')
+            argv=pipeline.stage_argv('/runtime/science/bin/python3.14',kind,'/work/request.json','/app/dreamm.pyz')
             self.assertEqual(argv[1:4],('-I','-S','-B'))
             self.assertEqual(argv[-2:],(kind,'/work/request.json'))
             self.assertNotIn('/bin/sh',argv)
-        with self.assertRaises(ValueError):pipeline.stage_argv('/python','user-command','/file')
+        with self.assertRaises(ValueError):pipeline.stage_argv('/python','user-command','/file','/app/dreamm.pyz')
 
     def test_preparation_cannot_silently_lose_a_protein_residue(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -74,4 +74,5 @@ def requirements():
         'qualified_examples':['frozen_1RLW_M1_trusted_local_Linux_x86_64_Python3.14.10_Java21'],
         'qualification':'example_passed_general_runtime_and_other_modes_not_yet_qualified',
         'trusted_local':{'exact_visible_CPU_count_required':False,'HHblits_threads':15,
-            'memory_policy':'sampled_RSS_abort_not_kernel_cgroup_quota','delegated_cgroup_required':False}}
+              'memory_policy':'optional_sampled_RSS_limit','minimum_available_ram_bytes':None,
+              'namespaces_required':False,'delegated_cgroup_required':False}}

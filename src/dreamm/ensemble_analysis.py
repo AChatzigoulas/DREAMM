@@ -10,8 +10,7 @@ from itertools import chain
 import json, math, os, resource, time, zipfile
 from pathlib import Path
 
-INPUT=Path('/inputs/data')
-WORK=Path('/work')
+INPUT=None
 EXPECTED_POCKETS={}
 RANK_COLUMNS = ("conformation_#_pocket_#", "total_conformations", "membrane-penetrating_residues",
                 "dist_surf_mean", "dist_surf_std", "dist_center_mean", "dist_center_std", "highest_score",
@@ -270,7 +269,7 @@ def bundle(target):
     index_path = target / "zip-members.json"
     index_path.write_bytes(canonical(index))
     index["zip-members.json"] = {"bytes": index_path.stat().st_size, "sha256": digest(index_path.read_bytes())}
-    zip_path = WORK / "DREAMM-ensemble.zip"
+    zip_path = target.parent / "DREAMM-ensemble.zip"
     with zipfile.ZipFile(str(zip_path), mode="x", compression=zipfile.ZIP_DEFLATED) as zip_file:
         for name in index:
             zip_file.write(str(target / name), name)

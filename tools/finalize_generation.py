@@ -50,7 +50,7 @@ def main():
     pattern=r'(\[\[deps\.ProteinEnsembles\]\]\n)(.*?)(?=\n\[\[deps\.|\Z)'
     def modify(m):
         body=re.sub(r'^git-tree-sha1 = .*\n','',m[2],flags=re.M)
-        return m[1]+'path = "/generation/exprose-pca-v1"\n'+body
+        return m[1]+'path = "../exprose-pca-v1"\n'+body
     text,n=re.subn(pattern,modify,text,flags=re.S)
     if n!=1:raise ValueError('one ExProSE dependency required')
     check=tomllib.loads(text)
@@ -67,7 +67,7 @@ def main():
         elif path.is_file():files[name]={'bytes':path.stat().st_size,'sha256':sha(path)}
         elif not path.is_dir():raise ValueError('special runtime file')
     if len(files)+len(links)>60000:raise ValueError('runtime inventory bound')
-    result={'schema':'dreamm-generation-runtime/1','julia':'1.10.13','ProteinEnsembles':'0.3.1','chimera':'1.19_b42556',
+    result={'schema':'dreamm-generation-runtime/1','julia':'1.10.13','ProteinEnsembles':'0.3.1','chimera':'1.19_b42556' if (root/'chimera/bin/chimera').is_file() else None,
       'original_exprose_tree':'0c88d70cf1a9170ed684c337c5117d41ae9f4b8f',
       'pca_patch_sha256':hashlib.sha256(patch.encode()).hexdigest(),'files':files,'links':links,
       'random_seed_supplied':False,'RNG':'Julia1.10.TaskLocalRNG','weight':'0.4',

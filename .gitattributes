@@ -7,6 +7,7 @@ runtime/*.json text eol=lf
 runtime/julia/*.toml text eol=lf
 STANDALONE.md text eol=lf
 build.py text eol=lf
+install.sh text eol=lf
 core-sources.json text eol=lf
 src/dreamm/** text eol=lf
 tests/** text eol=lf
@@ -20,3 +21,10 @@ src/dreamm/data/protdcal-schema.tsv -text !eol whitespace=cr-at-eol
 src/dreamm/data/wclq-weights.json -text !eol whitespace=cr-at-eol
 examples/1rlw/source.cif -text !eol -whitespace
 examples/1rlw/source.pdb -text !eol -whitespace
+# These qualified source/lock blobs were published with CRLF bytes.
+INSTALL.md -text !eol whitespace=cr-at-eol
+runtime/modern-interpreters.json -text !eol whitespace=cr-at-eol
+runtime/p2rank251-pdb-only.json -text !eol whitespace=cr-at-eol
+runtime/trusted-native.json -text !eol whitespace=cr-at-eol
+src/dreamm/data/p2rank251.json -text !eol whitespace=cr-at-eol
+src/dreamm/legacy_residues.py -text !eol whitespace=cr-at-eol

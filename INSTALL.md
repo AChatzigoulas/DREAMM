@@ -2,40 +2,30 @@
 
 ## Before installing
 
-Use a normal non-root account on x86-64 Linux. The guided basic and full profiles were qualified on Ubuntu 22.04 under WSL with glibc 2.35. The pinned native runtime requires glibc 2.35 or later. Rocky Linux 9 ships a different glibc baseline and needs separate qualification. The CLI uses no webserver, systemd service, Conda or dedicated cgroup delegation.
+Install as a regular user on x86-64 Linux. The platform exercised here is Ubuntu 22.04 under WSL. The installer checks its build prerequisites and loads the pinned executables on the host. FreeSASA and ProDy are built locally. The pinned binary packages still have platform ABI requirements, and Rocky Linux 9 has not been qualified.
 
-Install Python 3.12 or later for the setup script, GCC/G++, make, git and bubblewrap with working unprivileged user, PID, network and mount namespaces. For full mode also provide the distribution fonts and Fontconfig. The setup script operates in user-owned directories.
+Install your distribution's Python 3.9 or later, Git, GCC/G++, make, tar and system CA certificates. For full mode, also install Fontconfig and a standard TrueType font. On Ubuntu 22.04, the usual packages are `python3 git build-essential tar ca-certificates fontconfig fonts-dejavu-core`. Installation needs approximately 6 GiB of free space for the runtime, plus disk space for scientific runs.
 
-Allow at least 14 GiB available RAM at admission. One scientific worker runs at a time. The worker aborts on sampled aggregate RSS above 12 GiB or available host memory below 2 GiB. Allow at least 6 GiB on the runtime volume plus job storage. The default 2 GiB scratch budget needs 4 GiB free where the worker stages jobs and 2 GiB on the output volume. These are trusted-local research controls. The public worker has a separate admission and isolation contract.
-
-UniClust30 2018_08 needs 86.4 GiB unpacked. Allow about 140 GiB free for initial download, validation, extraction and reserve. Prefer an SSD on a local Linux filesystem. WSL-mounted NTFS can introduce substantial database mmap I/O overhead.
+UniClust30 2018_08 needs 86.4 GiB unpacked. Reserve about 140 GiB for initial download and extraction. Use a local SSD if possible. Database I/O from a Windows-mounted drive under WSL can be slower than native Linux storage.
 
 ## Install
 
-Before a fresh installation, obtain these external prerequisites under their applicable terms.
-
-- A lawfully held original DREAMM scientific asset checkout containing the pinned source revision `481055593c5676fb8f2a29c13e776782d772e527`. The installer uses its original model, reference, configuration, ProtDCal 4.5 and companion assets. See the [publication and dependency rights gate](THIRD_PARTY_NOTICES.md#release-gate).
-- The official [MSMS 2.6.1 release](https://github.com/sannerlab/downloads/releases/tag/msms-2.6.1) archive `msms_i86_64Linux2_2.6.1.tar.gz`.
-- For the full profile, the official [UCSF Chimera Classic 1.19 Linux headless installer](https://www.rbvi.ucsf.edu/chimera/download.html) `chimera-1.19-linux_x86_64_osmesa.bin`. Review and accept vendor terms yourself.
-- For all profiles, check that you are eligible under the academic terms in the pinned MoleculeKit wheel. See [third-party prerequisites](THIRD_PARTY_NOTICES.md).
-
-Run one setup command from the source tree. Use `--database-volume /path/to/large-local-volume` in place of `--database` to acquire the exact database on a suitably sized disk.
+Obtain the original [vendor MSMS 2.6.1 archive](https://github.com/sannerlab/downloads/releases/tag/msms-2.6.1), named `msms_i86_64Linux2_2.6.1.tar.gz`, under the applicable terms. Keep that filename. Review the [MoleculeKit and other dependency terms](THIRD_PARTY_NOTICES.md). Use a Git checkout containing the original DREAMM scientific assets. A checkout of this branch normally already has them.
 
 ```sh
-python3 -I -S -B tools/install.py --profile basic \
-  --database /data/uniclust30_2018_08 \
-  --msms-archive ~/Downloads/msms_i86_64Linux2_2.6.1.tar.gz \
-  --asset-repo ~/original-DREAMM-assets
+./install.sh
 ```
 
-For M1–M5 change to `--profile full` and add `--chimera-installer ~/Downloads/chimera-1.19-linux_x86_64_osmesa.bin`. Installation downloads permitted pinned Python, Java and native science assets, builds ProDy and FreeSASA, builds the original ProtDCal finish helper, checks the complete installed closure and verifies the exact local database. Full mode also stages P2Rank, XLSX support, Julia, ProteinEnsembles and the verified plotting overlay. The setup script passes SHA-256 values to the existing installers internally. It reuses completed steps only after their integrity checks. Failure leaves diagnostic files and does not publish a successful configuration.
-
-The default installation prefix is `~/.local/share/dreamm`. The setup script places the launcher under its `bin/` directory and the private configuration under `$XDG_CONFIG_HOME/dreamm/config.json` (usually `~/.config/dreamm/config.json`). Original verified downloads are retained under `cache/`. Advanced users can choose another `--prefix` and `--config`.
+Choose basic for M1/M2 or full for M1–M5. The installer finds the MSMS archive in Downloads when present and prompts for its path otherwise. It asks for the existing database directory or a local download destination. All hashes are checked internally. An equivalent noninteractive command is
 
 ```sh
-export PATH="$HOME/.local/share/dreamm/bin:$PATH"
-dreamm --version
+./install.sh --profile full --database /data/uniclust30_2018_08 \
+  --msms-archive ~/Downloads/msms_i86_64Linux2_2.6.1.tar.gz
 ```
+
+Use `--database-volume /path/to/large-local-volume` to download instead. Use `--reuse-downloads DIR` if original locked archives are already available. The installer verifies each reused archive. For a source-only archive or shallow clone missing the original assets, provide a lawfully held checkout using `--asset-repo DIR`.
+
+The default prefix is `~/.local/share/dreamm`. The launcher goes to `~/.local/bin/dreamm` and reads its installed configuration automatically. A custom `--prefix` uses its own `bin/` directory. The installer supplies the PATH command if needed. Full mode installs P2Rank, XLSX support, Julia, and the pinned ExProSE package and PCA patch.
 
 ## Run
 
@@ -53,19 +43,21 @@ Use `--output DIRECTORY` to choose a new result directory. The default is a new 
 
 ## Expert options and recovery
 
-Use `dreamm run --help` for the existing explicit source/runtime/checkpoint options. Keep `--full-database-verify` for a forced full scan. An unchanged full verification receipt reduces startup I/O. A metadata change forces full verification before reuse. The saved database is mounted read-only in the scientific worker.
+Use `dreamm run --help` for checkpoint and runtime options. A completed database verification receipt is reused while the underlying metadata and installation are unchanged. `--full-database-verify` forces another full scan.
 
-The default local budgets are 64 MiB source, 128 MiB per evidence file and 2 GiB scratch. Override them with `--source-mib`, `--artifact-mib` and `--scratch-mib` within the documented CLI bounds and available disk. The practical scientific limit depends on tool representation and measured resources. `--timeout` sets the job deadline. Use `--stage-timeout STAGE=SECONDS` for a reference stage or the ensemble `generation` or `essa` stage. `-p` caps local CPU affinity. It leaves the scientific tool thread settings, including 15 HHblits threads, intact.
+The local CLI runs tools as the invoking user with ordinary process-group cleanup and a five-hour default job deadline. Set `--timeout` and `--stage-timeout STAGE=SECONDS` as needed. `--processes N` limits CPU affinity while leaving the scientific thread settings intact, including the 15 HHblits threads. `--memory-mib`, `--source-mib`, `--artifact-mib`, and `--scratch-mib` are optional local limits. Memory and scratch use are sampled. Size your runs for the actual available RAM and disk. The local path is intended for trusted research input. Public deployments use the separate bounded-worker and coordinator controls.
 
-A fresh ensemble workflow computes its reference once. Advanced `export-reference` and `export-generation` freeze completed stages for reuse through the existing checkpoint switches. Supply the original source and the same verified settings when resuming. Match the reference mode, selected chains, source hash and generation parameters. Keep `--execution bounded-worker` and all of its original admission arguments for that separate mode. The configured CLI is for trusted-local research only.
+M5 uses explicit CCD and terminal bond templates to remove carbon-bound hydrogens before DSSP. Ambiguous topology fails with the affected residue and atom. If needed, obtain Chimera 1.19 under its own licence, pass `--chimera-installer` when setting up the full runtime, and select the fallback with `dreamm run --mode M5 … --chimera`. ExProSE’s original reader drops insertion codes. These inputs remain supported for the reference classifier, but native M5 correspondence cannot be guaranteed for them.
+
+An ensemble run computes its reference once. Expert commands `export-reference` and `export-generation` freeze completed stages for reuse. Checkpoints retain exact source, chain, runtime and generation identities. Keep the same generation runtime for saved ExProSE checkpoints. The result directory keeps partial files and process logs if a run fails.
 
 ## Validation scope
 
-The v1.1 guided installer built the basic runtime in a fresh prefix, hashed the existing UniClust30 database, then added the full profile to that newly installed basic runtime. Original prerequisite downloads were reused by hash. Both profiles produced the same reviewed v1.1 launcher.
+The frozen `dev` baseline qualified a clean basic/full installation and native M1–M5 cases, including a 112-residue, two-chain M2 fixture with insertion B:11A. Historical comparisons with missing raw labels or scaled features remain unavailable. Independent fresh HHblits searches can vary numerically.
 
-The accepted reference implementation completed clean Linux installation and an actual new-input 1PGA M2 run. Retained controls include 2,168 matching raw labels and 88 matching final calls across four M1 fixtures, native 1RLW M1/M2, 20-frame 2KS4 M3/M4, an M5 native empty result and positive downstream replay, and singleton M5 generation. Fresh HHblits searches can produce Conservation differences. Historical scaled feature matrices or raw labels are unavailable for some comparisons.
+On Ubuntu 22.04 under WSL, both installation profiles completed. A direct one-frame M4 run and a direct two-frame M5 run produced verified ZIPs. M5 used the template-based preparation and the frozen 1RLW reference. The three retained polar structures matched their Chimera references at the atom and DSSP-table levels and gave identical inputs to ExProSE's readers.
 
-The v1.1 launcher also completed a fresh native M2 run of a synthetic two-chain fixture derived from public 1PGA coordinates. It preserved all 112 residue identities, including numbering shared by both chains and the inserted residue B:11A. The original classifier evaluated 96 eligible residues and returned nine membrane calls, including B:11A. The 499 descriptor columns, 727 ordered model features, chain-local flags and 92-member result ZIP were verified. This test qualifies the exercised M2 input path. Modified residues and the other modes retain their separate validation scope.
+The direct M2 smoke test reached its 540-second HHblits test deadline on the Windows-mounted database. A separate check replayed the previously verified HHM for the exact query and completed the other native stages. All 499 descriptors, the ordered 727-feature matrix, raw predictions, and the seven membrane calls and flags matched the frozen M2 result. A new complete search on this branch remains unverified.
 
 ## Licences and redistribution
 

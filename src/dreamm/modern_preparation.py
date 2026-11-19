@@ -102,7 +102,7 @@ def prepare_reference(input_path, *, expected_sha256, charge_python, work, chain
         raise ValueError('ambiguous original CA identity')
     (work/'pre-ca.json').write_bytes(canonical(ca))
     start = time.monotonic()
-    argv = [str(charge_python), '-I', '-m', 'pdb2pqr', *PDB2PQR_OPTIONS, str(before), str(work/'charges.pqr')]
+    argv = [str(charge_python), '-I', '-B', '-m', 'pdb2pqr', *PDB2PQR_OPTIONS, str(before), str(work/'charges.pqr')]
     if general and len(set(molecule.chain))>1:
         argv = [str(charge_python),'-I','-S','-B','-c',
                 "import sys;sys.path.insert(0,sys.argv.pop(1));from dreamm.charge_stage import main;main()",

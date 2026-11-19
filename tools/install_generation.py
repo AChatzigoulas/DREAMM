@@ -1,4 +1,4 @@
-"""Offline extraction of separately obtained Chimera 1.19 and Julia 1.10.13.
+"""Extract pinned Julia and an optional separately obtained Chimera 1.19.
 
 No installer or scientific code executes. The owner/researcher must obtain and
 review the vendor licence themselves. ProteinEnsembles installation is separate.
@@ -27,37 +27,41 @@ def safe(name):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    for n in ('chimera-installer','julia-archive','output'):p.add_argument('--'+n,required=True)
+    p.add_argument('--chimera-installer')
+    for n in ('julia-archive','output'):p.add_argument('--'+n,required=True)
     a=p.parse_args()
     if sys.platform!='linux' or os.geteuid()==0:raise ValueError('non-root Linux required')
-    vendor=checked(a.chimera_installer,'chimera');julia=checked(a.julia_archive,'julia')
+    julia=checked(a.julia_archive,'julia')
     target=Path(a.output).absolute()
     if shutil.disk_usage(target.parent).free<3*1024**3:raise ValueError('3 GiB installation headroom required')
-    target.mkdir(mode=0o700);destination=target/'chimera';destination.mkdir(mode=0o700)
-    with zipfile.ZipFile(io.BytesIO(vendor)) as outer:
-        if outer.namelist()!=['installer','chimera.bin']:raise ValueError('vendor installer layout differs')
-        with zipfile.ZipFile(io.BytesIO(outer.read('chimera.bin'))) as inner:
-            entries=inner.infolist()
-            if len(entries)!=12239 or sum(i.file_size for i in entries)!=472343377:raise ValueError('vendor payload bound differs')
-            names={i.filename.rstrip('/') for i in entries}
-            if len(names)!=len(entries):raise ValueError('duplicate vendor name')
-            links={}
-            for item in entries:
-                name=item.filename.rstrip('/');safe(name);mode=item.external_attr>>16;path=destination/name
-                if item.is_dir():path.mkdir(parents=True,exist_ok=True,mode=0o700);continue
-                if stat.S_ISLNK(mode):
-                    link=inner.read(item).decode('ascii')
-                    if name in DOC:
-                        if link!=DOC[name]:raise ValueError('external documentation link differs')
-                        continue
-                    resolved=posixpath.normpath(posixpath.join(posixpath.dirname(name),link));safe(resolved)
-                    if resolved not in names:raise ValueError('unresolved vendor alias')
-                    links[name]=link;continue
-                if not stat.S_ISREG(mode) or item.file_size>32*1024**2:raise ValueError('vendor file type/size differs')
-                path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
-                with path.open('xb') as stream:stream.write(inner.read(item))
-                path.chmod(0o700 if mode&0o111 else 0o600)
-            for name,link in links.items():(destination/name).symlink_to(link)
+    target.mkdir(mode=0o700)
+    if a.chimera_installer:
+        vendor=checked(a.chimera_installer,'chimera')
+        destination=target/'chimera';destination.mkdir(mode=0o700)
+        with zipfile.ZipFile(io.BytesIO(vendor)) as outer:
+            if outer.namelist()!=['installer','chimera.bin']:raise ValueError('vendor installer layout differs')
+            with zipfile.ZipFile(io.BytesIO(outer.read('chimera.bin'))) as inner:
+                entries=inner.infolist()
+                if len(entries)!=12239 or sum(i.file_size for i in entries)!=472343377:raise ValueError('vendor payload bound differs')
+                names={i.filename.rstrip('/') for i in entries}
+                if len(names)!=len(entries):raise ValueError('duplicate vendor name')
+                links={}
+                for item in entries:
+                    name=item.filename.rstrip('/');safe(name);mode=item.external_attr>>16;path=destination/name
+                    if item.is_dir():path.mkdir(parents=True,exist_ok=True,mode=0o700);continue
+                    if stat.S_ISLNK(mode):
+                        link=inner.read(item).decode('ascii')
+                        if name in DOC:
+                            if link!=DOC[name]:raise ValueError('external documentation link differs')
+                            continue
+                        resolved=posixpath.normpath(posixpath.join(posixpath.dirname(name),link));safe(resolved)
+                        if resolved not in names:raise ValueError('unresolved vendor alias')
+                        links[name]=link;continue
+                    if not stat.S_ISREG(mode) or item.file_size>32*1024**2:raise ValueError('vendor file type/size differs')
+                    path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+                    with path.open('xb') as stream:stream.write(inner.read(item))
+                    path.chmod(0o700 if mode&0o111 else 0o600)
+                for name,link in links.items():(destination/name).symlink_to(link)
     with tarfile.open(fileobj=io.BytesIO(julia),mode='r:gz') as archive:
         members=archive.getmembers()
         if len(members)>20000 or sum(m.size for m in members)>1024**3:raise ValueError('Julia archive bound')
@@ -69,8 +73,8 @@ def main():
     project=target/'project';project.mkdir(mode=0o700)
     for name in ('Project.toml','Manifest.toml'):
         shutil.copyfile(Path(__file__).resolve().parents[1]/'runtime/julia'/name,project/name)
-    receipt={'schema':'dreamm-generation-uninstantiated/1','chimera':'1.19_b42556','julia':'1.10.13',
-             'sources':{k:{'sha256':v[0],'bytes':v[1]} for k,v in PINS.items()},
+    receipt={'schema':'dreamm-generation-uninstantiated/1','chimera':'1.19_b42556' if a.chimera_installer else None,'julia':'1.10.13',
+             'sources':{k:{'sha256':v[0],'bytes':v[1]} for k,v in PINS.items() if k=='julia' or a.chimera_installer},
              'omitted_external_documentation_links':DOC,'scientific_execution_performed':False,
              'ProteinEnsembles_instantiation_required':True}
     (target/'installation.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8')

@@ -33,18 +33,11 @@ def locate(caches,name,expected):
     return path
 
 
-def build_command(argv,source,output,command,*,jdk=None,jar=None):
-    args=[str(argv),'--unshare-all','--die-with-parent','--new-session','--cap-drop','ALL','--clearenv',
-        '--ro-bind','/usr','/usr','--symlink','usr/bin','/bin','--symlink','usr/lib','/lib',
-        '--symlink','usr/lib64','/lib64','--ro-bind','/etc/alternatives','/etc/alternatives',
-        '--ro-bind',str(source),'/source','--bind',str(output),'/build',
-        '--proc','/proc','--dev','/dev','--tmpfs','/tmp','--chdir','/build',
-        '--setenv','PATH','/usr/bin','--setenv','HOME','/nonexistent']
-    if jdk:args+=['--ro-bind',str(jdk),'/jdk']
-    if jar:args+=['--ro-bind',str(jar),'/reference.jar']
-    logpath=output/('command-'+str(len(list(output.glob('command-*.log'))))+'.log')
+def build_command(cwd, logs, command):
+    logpath = logs/('command-'+str(len(list(logs.glob('command-*.log'))))+'.log')
     with logpath.open('xb') as log:
-        result=subprocess.run(args+['--remount-ro','/','--']+command,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,timeout=240)
+        result = subprocess.run(command,cwd=cwd,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,
+                                env={'PATH':os.defpath,'LC_ALL':'C','HOME':str(logs)},timeout=240)
     require(result.returncode==0,'INSTALL_BUILD_FAILED','offline build failed: '+logpath.read_text(errors='replace')[-2048:])
 
 
@@ -143,10 +136,9 @@ def install(args):
         add('compiled/'+Path(path).name,raw)
     with tempfile.TemporaryDirectory(prefix='dreamm-native-build-') as temp:
         temp=Path(temp);classes=temp/'classes';classes.mkdir()
-        build_command(args.launcher,ROOT/'java/src',classes,
-            ['/jdk/bin/javac','-J-Xmx512m','--release','8','-proc:none','-g:none','-encoding','UTF-8',
-             '-classpath','/reference.jar','-d','/build','/source/org/dreamm/m1/WclqFinish.java'],
-            jdk=tree/'jdk',jar=tree/'protdcal/ProtDCal.jar')
+        build_command(temp,classes,
+            [str(tree/'jdk/bin/javac'),'-J-Xmx512m','--release','8','-proc:none','-g:none','-encoding','UTF-8',
+             '-classpath',str(tree/'protdcal/ProtDCal.jar'),'-d',str(classes),str(ROOT/'java/src/org/dreamm/m1/WclqFinish.java')])
         import io
         buffer=io.BytesIO()
         with zipfile.ZipFile(buffer,'w') as jar:
@@ -155,8 +147,8 @@ def install(args):
         raw=buffer.getvalue();require(digest(raw)==PINNED['helper'],'INSTALL_INVALID','compiled helper is not reproducible')
         add('compiled/dreamm-wclq.jar',raw)
         row=native['freesasa'];p=locate(caches,row['filename'],row['sha256']);src=temp/'freesasa';source_tree(p,src)
-        build_command(args.launcher,src,src,['./configure','--disable-json','--disable-xml'])
-        build_command(args.launcher,src,src,['/usr/bin/make','-j','2'])
+        build_command(src,src,['./configure','--disable-json','--disable-xml'])
+        build_command(src,src,['make','-j','2'])
         add('native/bin/freesasa',(src/'src/freesasa').read_bytes(),True)
         for log in src.glob('command-*.log'):(target/('freesasa-'+log.name)).write_bytes(log.read_bytes())
     dependency_lock={'schema':'dreamm-modern-closure/1',
@@ -164,7 +156,7 @@ def install(args):
         'charge_manifest_sha256':digest((ROOT/'runtime/modern-charge-cp314.json').read_bytes()),
         'prody_source_version':'2.6.1','old_vm_files_used':False,'sources':sources,
         'public_asset_commit':BASE,'builds':['Java --release 8 -proc:none -g:none','FreeSASA --disable-json --disable-xml'],
-        'system_native_abi':'Linux x86_64 glibc; host distribution libraries read-only'}
+        'system_native_abi':'Linux x86_64 glibc; FreeSASA and ProDy are built for the installation host'}
     add('dependency-lock.json',canonical(dependency_lock))
     roles={role:out for role,(_,out) in public.items()};roles.update(LAYOUT)
     roles.update(java='jdk/bin/java',hhblits='native/bin/hhblits',dssp='native/bin/mkdssp',
@@ -183,7 +175,7 @@ def install(args):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--cache',action='append',required=True)
-    p.add_argument('--output',required=True);p.add_argument('--launcher',default='/usr/bin/bwrap')
+    p.add_argument('--output',required=True)
     p.add_argument('--asset-repo',help='trusted local Git checkout containing the pinned public asset commit')
     p.add_argument('--resume-incomplete',action='store_true',help='rehash/reconstruct an uncommitted partial installation; never skip validation')
     p.add_argument('--prody-build-receipt',help='explicit separately built target-ABI wheel provenance; never an automatic fallback')

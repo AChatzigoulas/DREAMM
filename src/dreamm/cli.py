@@ -1,4 +1,4 @@
-"""Offline intake and verification. Scientific execution requires a qualified worker."""
+"""DREAMM commands for local science, verification and explicit server tooling."""
 import argparse
 from collections import Counter
 import json
@@ -92,8 +92,8 @@ def sync_directory(path):
             os.close(descriptor)
 
 
-def prepare(args):
-    raw = source_bytes(args)
+def prepare(args, *, raw=None):
+    raw = source_bytes(args) if raw is None else raw
     receipt = request_data(args, raw)
     encoded = canonical(receipt)
     require(len(encoded) <= 16384, "RESOURCE_LIMIT", "request manifest exceeds 16 KiB")
@@ -257,10 +257,11 @@ def parser():
     local.add_argument('-i', '--source', help='PDB ID or local PDB/mmCIF file using the installed configuration')
     local.add_argument('-c', '--chains', nargs='+', help='author chain IDs, separated by spaces or commas')
     local.add_argument('--config', help='guided installer configuration (default ~/.config/dreamm/config.json)')
-    local.add_argument('-p', '--processes', type=int, help='trusted-local CPU affinity bound, up to 15')
-    local.add_argument('--source-mib', type=int, default=64, help='trusted-local source byte budget in MiB')
-    local.add_argument('--artifact-mib', type=int, default=128, help='trusted-local per-file budget in MiB')
-    local.add_argument('--scratch-mib', type=int, default=2048, help='trusted-local total scratch budget in MiB')
+    local.add_argument('-p', '--processes', type=int, help='limit CPU affinity; scientific thread settings stay pinned')
+    local.add_argument('--memory-mib', type=int, help='optional sampled aggregate RSS ceiling in MiB')
+    local.add_argument('--source-mib', type=int, help='optional source byte limit in MiB')
+    local.add_argument('--artifact-mib', type=int, help='optional per-file limit in MiB')
+    local.add_argument('--scratch-mib', type=int, help='optional sampled scratch limit in MiB')
     local.add_argument('--stage-timeout', action='append', default=[], metavar='STAGE=SECONDS',
                        help='trusted-local deadline override; does not change scientific parameters')
     local.add_argument('--pdb-id')
@@ -274,6 +275,7 @@ def parser():
         local.add_argument('--'+name)
     local.add_argument('--ensemble-profile',choices=('default','alphafold'),default='default')
     local.add_argument('--additional',type=int)
+    local.add_argument('--chimera', action='store_true', help='use a separately installed M5 Chimera fallback')
     local.add_argument('--seed',type=int,help='optional M5 ExProSE UInt64 seed, recorded in generation provenance')
     for name in ('source-packet','installation','installation-sha256','cgroup-root','launcher','launcher-sha256'):
         local.add_argument('--'+name)
@@ -315,18 +317,18 @@ def run_local(args):
             ('input','sha256','runtime_root','runtime_manifest','runtime_sha256','output')),
             'REQUEST_INVALID','provide -i PDB_ID_OR_FILE or the complete expert runtime arguments')
     if args.execution == 'trusted-local':
-        from dreamm_m1.local_budget import local_budget, MIB
-        with local_budget(getattr(args, 'source_mib', 64)*MIB, getattr(args, 'artifact_mib', 128)*MIB,
-                          getattr(args, 'scratch_mib', 2048)*MIB):
+        from .process import requested_budget
+        with requested_budget(args):
             return _run_worker(args)
     return _run_worker(args)
 
 
 def _run_worker(args):
+    require(not getattr(args, 'chimera', False) or args.mode == 'M5', 'REQUEST_INVALID', '--chimera is M5 only')
     if args.mode in ('M3','M4','M5'):
         require(args.execution=='trusted-local' and args.runtime_profile=='modern',
                 'LOCAL_MODE_UNQUALIFIED','standalone ensemble mode requires the explicit modern trusted-local boundary')
-        require(not any(getattr(args,n,None) for n in ('cgroup_root','installation','installation_sha256','source_packet')),
+        require(not any(getattr(args,n,None) for n in ('cgroup_root','installation','installation_sha256','source_packet','launcher','launcher_sha256')),
                 'LOCAL_ADMISSION_FAILED','never downgrade bounded-worker admission')
         require(all(getattr(args,n,None) for n in ('reference_checkpoint','reference_sha256','ensemble_runtime',
                 'ensemble_sha256','extensions','extensions_sha256')),'LOCAL_ADMISSION_FAILED','verified M1 reference and ensemble dependencies required')
@@ -344,12 +346,13 @@ def _run_worker(args):
     require(args.additional is None and args.seed is None,'REQUEST_INVALID','generation options are M5 only')
     if args.execution == 'trusted-local':
         require(sys.platform=='linux','LOCAL_UNAVAILABLE','trusted-local execution requires Linux')
-        require(not any(getattr(args,name,None) for name in ('cgroup_root','installation','installation_sha256','source_packet')),
+        require(not any(getattr(args,name,None) for name in ('cgroup_root','installation','installation_sha256','source_packet','launcher','launcher_sha256')),
             'LOCAL_ADMISSION_FAILED','bounded-worker arguments require explicit --execution bounded-worker; never downgrade isolation')
         from .trusted import run
     else:
         require(not getattr(args,'chains',None) and not getattr(args,'stage_timeout',None)
-                and getattr(args,'processes',None) is None,
+                and not any(getattr(args, key, None) is not None for key in
+                            ('processes', 'memory_mib', 'source_mib', 'artifact_mib', 'scratch_mib')),
                 'LOCAL_ADMISSION_FAILED','trusted-local settings require trusted-local execution')
         require(all(getattr(args,name,None) for name in ('source_packet','installation','installation_sha256',
             'cgroup_root','launcher','launcher_sha256')), 'LOCAL_ADMISSION_FAILED','bounded-worker requires the complete original admission arguments')
@@ -362,7 +365,7 @@ def stage_timeouts(args, defaults):
     for entry in getattr(args, 'stage_timeout', []):
         name, sep, seconds = entry.partition('=')
         require(sep and name in defaults and name not in requested and seconds.isascii() and seconds.isdecimal()
-                and len(seconds)<=5 and 1<=int(seconds)<=args.timeout,
+                and len(seconds)<=9 and 1<=int(seconds)<=args.timeout,
                 'REQUEST_INVALID','stage deadline must name a known stage and fit the job deadline')
         requested[name] = int(seconds)
     return {**defaults,**requested}
@@ -376,7 +379,9 @@ def export_completed(args):
 def analyze_ensemble(args):
     require(sys.platform=='linux','LOCAL_UNAVAILABLE','standalone ensemble execution requires Linux')
     from .ensemble_local import run
-    return run(args)
+    from .process import requested_budget
+    with requested_budget(args):
+        return run(args)
 
 
 def export_reference(args):
@@ -390,12 +395,15 @@ def export_generation(args):
 
 
 def export_attempt(args, action):
-    admission=Path(args.attempt).absolute()/'admission.json'
-    if not admission.is_file():
+    attempt=Path(args.attempt).absolute()
+    receipt=attempt/'run.json'
+    if not receipt.is_file():
+        receipt=attempt/'admission.json'
+    if not receipt.is_file():
         return action(args)
-    _parents(admission.parent)
-    config=_json(_read(admission,16384))
-    if config.get('schema')!='dreamm-trusted-admission/1' or 'artifact_bytes' not in config:
+    _parents(attempt)
+    config=_json(_read(receipt,65536))
+    if config.get('schema') not in ('dreamm-trusted-admission/1', 'dreamm-local-run/1') or 'artifact_bytes' not in config:
         return action(args)
     from dreamm_m1.local_budget import local_budget
     with local_budget(config['source_bytes'],config['artifact_bytes'],config['scratch']):
@@ -406,6 +414,9 @@ def main(argv=None):
     args = parser().parse_args(argv)
     try:
         result = args.action(args)
+    except KeyboardInterrupt:
+        print('DREAMM interrupted', file=sys.stderr)
+        return 130
     except (ValueError, OSError, KeyError, TypeError, IndexError, RecursionError,
             subprocess.SubprocessError, tarfile.TarError) as exc:
         print(json.dumps({"ok": False, "error": getattr(exc, "code", "INPUT_INVALID"),

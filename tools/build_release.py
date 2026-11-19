@@ -5,7 +5,7 @@ from pathlib import Path
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-ROOT_FILES = ('README.md', 'INSTALL.md', 'LICENSE', 'build.py', 'core-sources.json',
+ROOT_FILES = ('README.md', 'INSTALL.md', 'LICENSE', 'install.sh', 'build.py', 'core-sources.json',
               'DEVELOPERS.md','THIRD_PARTY_NOTICES.md','RELEASE_NOTES_v1.1.md',
               '.gitattributes', '.gitignore')
 AREAS = {'src': {'.py', '.json', '.tsv', '.jl'}, 'tools': {'.py'}, 'tests': {'.py'},
@@ -38,7 +38,8 @@ def build(target):
     with zipfile.ZipFile(target, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for name, raw in sorted(entries.items()):
             item = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
-            item.external_attr = 0o100644 << 16
+            item.create_system = 3
+            item.external_attr = (0o100755 if name == 'install.sh' else 0o100644) << 16
             archive.writestr(item, raw, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
     with zipfile.ZipFile(target) as archive:
         if set(archive.namelist()) != entries.keys() or any(archive.read(n) != raw for n, raw in entries.items()):

@@ -27,7 +27,7 @@ class ReceiptTests(unittest.TestCase):
             def check(*a,hash_contents):
                 calls.append(hash_contents)
                 return {'fully_hashed':hash_contents,'file_identities':{'part':{'bytes':data.stat().st_size}}}
-            with patch('dreamm.trusted.verify_database',side_effect=check):
+            with patch('dreamm.database_receipt.verify_database',side_effect=check):
                 run=lambda:verify(db,{},runtime_sha256='1'*64,installation=installation,state=state)
                 self.assertEqual(run()['verification_method'],'full_sha256')
                 self.assertEqual(run()['verification_method'],'unchanged_verified_receipt')

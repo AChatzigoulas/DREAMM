@@ -1,5 +1,6 @@
 """Fixed modern preparation/ProDy child entries inside the admitted job."""
 from pathlib import Path
+import os
 import sys
 
 from dreamm_m1.capture import _json, _read
@@ -9,10 +10,10 @@ from .modern_runtime import enable_imports, verify_python_versions
 
 
 def main():
-    import os
-    from dreamm_m1.local_budget import local_budget
-    if os.environ.get('DREAMM_TRUSTED_BUDGET'):
-        with local_budget(*map(int,os.environ['DREAMM_TRUSTED_BUDGET'].split(':'))):
+    budget = os.environ.get('DREAMM_LOCAL_BUDGET')
+    if budget:
+        from dreamm_m1.local_budget import local_budget
+        with local_budget(*map(int, budget.split(':'))):
             return run_stage()
     return run_stage()
 
@@ -22,7 +23,8 @@ def run_stage():
             'SCIENTIFIC_RUNTIME_MISMATCH', 'fixed modern stage request required')
     kind = sys.argv[1]
     config = _json(_read(Path(sys.argv[2])))
-    enable_imports('/runtime', stage='dynamics' if kind == 'dynamics' else 'science')
+    runtime = Path(config.pop('runtime'))
+    enable_imports(runtime, stage='dynamics' if kind == 'dynamics' else 'science')
     verify_python_versions('dynamics' if kind == 'dynamics' else 'science')
     if kind == 'inference':
         import argparse
@@ -37,10 +39,9 @@ def run_stage():
                 from .modern_preparation import prepare_reference
                 options={'project_blank_pdb_segment':True} if config.get('project_blank_pdb_segment') else {}
                 prepare_reference(config['input'], expected_sha256=config['input_sha256'],
-                    charge_python='/runtime/charge/bin/python3.14', work=work, timeout=config.get('charge_timeout',180),
+                    charge_python=runtime/'charge/bin/python3.14', work=work, timeout=config.get('charge_timeout',180),
                     chain=config.get('chains'), general=config.get('general',False), **options)
             else:
-                import os
                 os.environ['OMP_NUM_THREADS'] = '1'
                 from dreamm_m1.native_m1 import _dynamics
                 rows = config['bindings']

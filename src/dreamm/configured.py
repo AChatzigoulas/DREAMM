@@ -12,7 +12,7 @@ import uuid
 
 from dreamm_m1.capture import _json, _parents, _read
 from dreamm_m1.identity import canonical, digest, require, sha
-from dreamm_m1.local_budget import MIB, local_budget, source_bytes
+from dreamm_m1.local_budget import UNLIMITED, source_bytes
 
 PDB_ID = re.compile(r'[1-9][A-Za-z0-9]{3}', flags=re.ASCII)
 RCSB = 'files.rcsb.org'
@@ -46,7 +46,8 @@ def acquire(pdb_id):
         require(response.status == 200 and official_url(response.url)
                 and response.url.upper() == url.upper(),
                 'SOURCE_ACQUISITION_FAILED', 'unexpected PDB response')
-        raw = response.read(source_bytes() + 1)
+        limit = source_bytes()
+        raw = response.read() if limit == UNLIMITED else response.read(limit + 1)
         require(0 < len(raw) <= source_bytes() and raw.lstrip().startswith(b'data_'),
                 'SOURCE_ACQUISITION_FAILED', 'download is empty, oversized or not an mmCIF entry')
         return raw, {'url': url, 'etag': response.headers.get('ETag'),
@@ -66,12 +67,14 @@ def get_input(value, mode):
 
 
 def config_path():
+    if os.environ.get('DREAMM_CONFIG'):
+        return Path(os.environ['DREAMM_CONFIG'])
     return Path(os.environ.get('XDG_CONFIG_HOME') or Path.home()/'.config')/'dreamm'/'config.json'
 
 
 def settings(path, mode):
     path = Path(path or config_path()).absolute()
-    require(path.is_file(),'INSTALL_REQUIRED','run tools/install.py first or select a DREAMM --config')
+    require(path.is_file(),'INSTALL_REQUIRED','run ./install.sh first or select a DREAMM --config')
     _parents(path.parent)
     info=path.lstat()
     require(stat.S_ISREG(info.st_mode) and info.st_uid==os.getuid() and not info.st_mode&0o077,
@@ -93,13 +96,14 @@ def settings(path, mode):
 
 def run(args):
     from .cli import _run_worker, check_selection, write_private, sync_directory
+    from .process import requested_budget
     from .exports import export as export_results
     from .reference_export import export as export_reference
     require(args.execution == 'trusted-local' and args.runtime_profile == 'modern'
             and not any(getattr(args,name,None) for name in
                 ('input','sha256','pdb_id','runtime_root','runtime_manifest','runtime_sha256',
                  'database','database_manifest','application','source_packet','cgroup_root',
-                 'installation','installation_sha256',*ENSEMBLE,*GENERATION)),
+                 'installation','installation_sha256','launcher','launcher_sha256',*ENSEMBLE,*GENERATION)),
             'REQUEST_INVALID', '-i uses the private local installation; separate expert runtime options')
     chains = [chain for value in (args.chains or ()) for chain in value.split(',')] or None
     args.chains = chains
@@ -111,8 +115,8 @@ def run(args):
     from .modern_pipeline import SECONDS
     from .cli import stage_timeouts
     ensemble=args.mode in ('M3','M4','M5')
-    stage_timeouts(args,{**SECONDS, 'inference':180, **({'generation':1200,'essa':600} if ensemble else {})})
-    with local_budget(args.source_mib*MIB,args.artifact_mib*MIB,args.scratch_mib*MIB):
+    stage_timeouts(args,{**SECONDS, 'inference':180, **({'generation':1200,'essa':600,'p2rank':1800} if ensemble else {})})
+    with requested_budget(args):
         raw, fmt, pdb_id, origin = get_input(args.source,args.mode)
         check_selection(args.mode,fmt,pdb_id,chains,args.additional,trusted_input=True)
         cfg=settings(args.config,args.mode)
@@ -137,15 +141,15 @@ def run(args):
                     reference=output/'reference-attempt'
                     start=time.monotonic()
                     _run_worker(argparse.Namespace(**{**values,'mode':'M1' if fmt=='mmcif' else 'M2',
-                        'additional':None,'seed':None,'output':str(reference),
+                        'additional':None,'seed':None,'chimera':False,'output':str(reference),
                         'stage_timeout':[item for item in args.stage_timeout
-                                         if item.partition('=')[0] not in ('generation','essa')]}))
+                                         if item.partition('=')[0] not in ('generation','essa','p2rank')]}))
                     receipt=export_reference(argparse.Namespace(attempt=reference,output=output/'reference'))
                     require(int(time.monotonic()-start)<args.timeout,'RESOURCE_LIMIT','job deadline reached during reference')
                     values.update(reference_checkpoint=receipt['output'],reference_sha256=receipt['sha256'],
                                   timeout=args.timeout-int(time.monotonic()-start))
                 values['stage_timeout']=[item for item in args.stage_timeout
-                                          if item.partition('=')[0] in ('generation','essa')]
+                                          if item.partition('=')[0] in ('generation','essa','p2rank')]
                 summary=_run_worker(argparse.Namespace(**values))
                 result={'archive':str(output/'attempt'/'results'/'DREAMM-ensemble.zip')}
         final={'completed':True,'output':str(output),'prediction':summary,'exports':result}

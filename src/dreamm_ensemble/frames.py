@@ -160,7 +160,9 @@ def project_mmcif(source):
                 return a.field(name).value
 
             key = (a.record, a.residue.auth_chain, a.residue.auth_seq,
-                   field("pdbx_PDB_ins_code") or " ", a.residue.source_resname,
+                   # The PDB reader retains the entire fixed-width component
+                   # field, including padding for components such as CD.
+                   field("pdbx_PDB_ins_code") or " ", a.residue.source_resname.rjust(3),
                    field("auth_atom_id"), field("label_alt_id") or " ", field("type_symbol"))
             numeric = [field(f"Cartn_{ax}") for ax in "xyz"] + [field("occupancy"), field("B_iso_or_equiv")]
             if key != _atom_key(b) or tuple(map(Decimal, numeric)) != tuple(map(

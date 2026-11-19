@@ -1,30 +1,30 @@
 """Size budgets for the trusted-local workflow. Fixed worker defaults stay narrow."""
 from contextlib import contextmanager
 from contextvars import ContextVar
+import sys
 
 from .identity import require
 
 MIB = 1024 ** 2
 DEFAULT_SOURCE = 8 * MIB
 DEFAULT_ARTIFACT = 8 * MIB
-LOCAL_SOURCE = 64 * MIB
-LOCAL_ARTIFACT = 128 * MIB
+UNLIMITED = sys.maxsize - 1
 DEFAULT_SCRATCH = 512 * MIB
 _budget = ContextVar("dreamm_trusted_local_budget", default=None)
 
 
 def validated_budget(source, artifact):
     require(type(source) is int and type(artifact) is int
-            and DEFAULT_SOURCE <= source <= artifact <= 256 * MIB,
-            "RESOURCE_LIMIT", "trusted-local source/artifact budget must be between 8 and 256 MiB")
+            and 0 < source <= UNLIMITED and 0 < artifact <= UNLIMITED,
+            "RESOURCE_LIMIT", "source and artifact budgets must be positive")
     return source, artifact
 
 
 @contextmanager
 def local_budget(source, artifact, scratch=DEFAULT_SCRATCH):
     validated_budget(source, artifact)
-    require(type(scratch) is int and max(artifact, DEFAULT_SCRATCH) <= scratch <= 16384 * MIB,
-            "RESOURCE_LIMIT", "trusted-local scratch budget must be between 512 and 16384 MiB")
+    require(type(scratch) is int and 0 < scratch <= UNLIMITED,
+            "RESOURCE_LIMIT", "scratch budget must be positive")
     token = _budget.set((source, artifact, scratch))
     try:
         yield
@@ -54,7 +54,7 @@ def trusted_local():
 
 
 def model_count():
-    return 9999 if trusted_local() else 20
+    return 9999 if trusted_local() else 20  # fixed-width PDB MODEL field
 
 
 def source_atom_count():

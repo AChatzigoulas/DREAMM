@@ -1,9 +1,5 @@
-"""Instantiate the fixed modern Julia lock in a private installation namespace.
-
-Networking is enabled only for official Julia package/artifact acquisition.
-Scientific generation must run separately with networking disconnected.
-"""
-import argparse,hashlib,json,os,resource,signal,subprocess,sys,time
+"""Instantiate the pinned Julia packages in a private, user-owned depot."""
+import argparse,hashlib,json,os,signal,subprocess,sys,time
 from pathlib import Path
 
 
@@ -22,30 +18,17 @@ println("DREAMM_PROTEINENSEMBLES_SOURCE=", pathof(ProteinEnsembles))
 println("DREAMM_JULIA_VERSION=", VERSION)
 println("DREAMM_RNG=", typeof(Random.default_rng()))
 '''.replace('using ProteinEnsembles','using ProteinEnsembles, Random'),encoding='utf-8')
-    base=['/usr/bin/bwrap','--unshare-all','--die-with-parent','--new-session','--cap-drop','ALL',
-          '--uid',str(os.geteuid()),'--gid',str(os.getgid()),'--clearenv']
-    for path in ('/usr/lib/x86_64-linux-gnu','/usr/lib64'):
-        if Path(path).exists():base+=['--ro-bind',path,path]
-    base+=['--symlink','usr/lib','/lib','--symlink','usr/lib64','/lib64','--ro-bind',str(root),'/generation',
-           '--bind',str(project),'/generation/project','--bind',str(root/'depot'),'/generation/depot',
-           '--bind',str(root/'home'),'/generation/home','--bind',str(out),'/evidence',
-           '--proc','/proc','--dev','/dev','--tmpfs','/tmp','--chdir','/generation/project',
-           '--setenv','HOME','/generation/home','--setenv','PATH','/generation/julia/bin',
-           '--setenv','JULIA_DEPOT_PATH','/generation/depot','--setenv','JULIA_NUM_THREADS','1',
-           '--setenv','JULIA_NUM_PRECOMPILE_TASKS','1','--setenv','JULIA_PKG_PRECOMPILE_AUTO','0',
-           '--setenv','JULIA_CPU_TARGET','generic','--setenv','OPENBLAS_NUM_THREADS','1',
-           '--setenv','OMP_NUM_THREADS','1','--setenv','LANG','C.UTF-8',
-           '--setenv','JULIA_PKG_SERVER','https://pkg.julialang.org',
-           '--share-net','--ro-bind','/etc/resolv.conf','/etc/resolv.conf','--ro-bind','/etc/ssl/certs','/etc/ssl/certs',
-           '--remount-ro','/','--','/generation/julia/bin/julia','--startup-file=no','--history-file=no',
-           '--compiled-modules=no','--project=/generation/project','/evidence/instantiate.jl']
-    def limits():
-        resource.setrlimit(resource.RLIMIT_CORE,(0,0));resource.setrlimit(resource.RLIMIT_AS,(8*1024**3,8*1024**3))
-        resource.setrlimit(resource.RLIMIT_CPU,(900,900));resource.setrlimit(resource.RLIMIT_FSIZE,(256*1024**2,256*1024**2))
-        os.sched_setaffinity(0,set(sorted(os.sched_getaffinity(0))[:2]))
+    argv = [str(root/'julia/bin/julia'),'--startup-file=no','--history-file=no','--compiled-modules=no',
+            '--project='+str(project),str(command)]
+    env = {key: value for key,value in os.environ.items()
+           if key.lower() in ('http_proxy','https_proxy','no_proxy','ssl_cert_file','ssl_cert_dir')}
+    env.update(HOME=str(root/'home'), PATH=os.defpath, LANG='C.UTF-8',
+               JULIA_DEPOT_PATH=str(root/'depot'),JULIA_NUM_THREADS='1',JULIA_NUM_PRECOMPILE_TASKS='1',
+               JULIA_PKG_PRECOMPILE_AUTO='0',JULIA_CPU_TARGET='generic',OPENBLAS_NUM_THREADS='1',
+               OMP_NUM_THREADS='1',JULIA_PKG_SERVER='https://pkg.julialang.org')
     started=time.monotonic()
     with (out/'stdout').open('xb') as so,(out/'stderr').open('xb') as se:
-        child=subprocess.Popen(base,stdin=subprocess.DEVNULL,stdout=so,stderr=se,start_new_session=True,preexec_fn=limits)
+        child=subprocess.Popen(argv,cwd=project,env=env,stdin=subprocess.DEVNULL,stdout=so,stderr=se,start_new_session=True)
         try:status=child.wait(timeout=1200)
         finally:
             if child.poll() is None:
@@ -53,8 +36,7 @@ println("DREAMM_RNG=", typeof(Random.default_rng()))
                 try:child.wait(timeout=5)
                 except subprocess.TimeoutExpired:os.killpg(child.pid,signal.SIGKILL);child.wait(timeout=10)
             (out/'installation-process.json').write_text(json.dumps({'returncode':child.returncode,
-                'wall_seconds':time.monotonic()-started,'network':'package acquisition only in isolated mount/PID namespace',
-                'limits':{'virtual_address_bytes':8*1024**3,'cpu_seconds':900,'cpus':2,'wall_seconds':1200},
+                'wall_seconds':time.monotonic()-started,'network':'Julia package acquisition','timeout_seconds':1200,
                 'scientific_generation_performed':False,'project_locks':pins},indent=2),encoding='utf-8')
     if status:raise RuntimeError('Julia instantiation failed; inspect retained stderr')
     if pins!={n:hashlib.sha256((project/n).read_bytes()).hexdigest() for n in pins}:raise RuntimeError('Pkg changed the approved lock')

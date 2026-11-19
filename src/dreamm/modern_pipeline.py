@@ -1,8 +1,4 @@
-"""Modern M1 orchestration of the immutable scientific functions, 1RLW first.
-
-This module owns neither scheduling nor process containment. The existing local
-supervisor admits one bounded worker; any failed stage fails the whole attempt.
-"""
+"""Modern M1 scientific orchestration shared by the local CLI and bounded worker."""
 import os
 from pathlib import Path
 import pkgutil
@@ -39,11 +35,11 @@ def recipe_sha256():
          'writer_identity.py', 'residue_mapping.py', 'legacy_residues.py', 'charge_stage.py')}))
 
 
-def stage_argv(python, kind, config):
+def stage_argv(python, kind, config, application):
     require(kind in ('preparation', 'dynamics', 'inference'), 'LOCAL_INVALID', 'unknown modern scientific stage')
     return (str(python), '-I', '-S', '-B', '-c',
-            "import sys;sys.path.insert(0,'/code/dreamm.pyz');from dreamm.modern_stage import main;main()",
-            kind, str(config))
+            "import sys;sys.path.insert(0,sys.argv.pop(1));from dreamm.modern_stage import main;main()",
+            str(application), kind, str(config))
 
 
 def _pdb(raw):
@@ -133,45 +129,49 @@ def admit_reference(bridge):
 def run_reference(request_directory, *, bundle, runtime_root, profiles, database_prefix,
                   database_verification, work, profile_bytes, source_packet=None, execution='bounded-worker',
                   stage_deadlines=None):
-    """Called after effective local isolation, runtime and database verification."""
+    """Run with verified tool and database identities supplied by the caller."""
     from .cli import verify_request
     import argparse
     require(isinstance(bundle, ModernRuntimeBundle), 'SCIENTIFIC_RUNTIME_MISMATCH', 'modern runtime profile required')
     verify_request(argparse.Namespace(directory=request_directory, trusted_input=trusted_local()))
     request = _json(_read(Path(request_directory)/'request.json', 16384))
     require(execution in ('bounded-worker','trusted-local'), 'LOCAL_ADMISSION_FAILED', 'unknown execution boundary')
+    local = execution == 'trusted-local'
     deadlines={**SECONDS,'inference':180}
     if stage_deadlines is not None:
         require(trusted_local() and execution=='trusted-local' and stage_deadlines.keys()==deadlines.keys()
-                and all(type(value) is int and 1<=value<=86400 for value in stage_deadlines.values()),
+                and all(type(value) is int and 1<=value for value in stage_deadlines.values()),
                 'LOCAL_ADMISSION_FAILED','unexpected stage deadlines')
         deadlines=stage_deadlines
-    if execution=='bounded-worker':
+    if not local:
         require(request['mode']=='M1' and reference_fixture(request)=='1RLW',
                 'LOCAL_MODE_UNQUALIFIED','bounded worker requires its original pinned input')
     else:
         require(request['mode'] in ('M1','M2'),
                 'LOCAL_MODE_UNQUALIFIED','trusted-local M1/M2 reference required')
     require(sys.version_info[:3] == (3,14,10) and os.geteuid() != 0
-            and (execution == 'trusted-local' or os.cpu_count() == 16),
+            and (local or os.cpu_count() == 16),
             'SCIENTIFIC_RUNTIME_MISMATCH', 'qualified modern worker and unchanged 15-thread HHblits policy required')
     verify_python_versions('science')
     runtime_root = Path(runtime_root)
-    require(os.statvfs(runtime_root).f_flag & os.ST_RDONLY, 'LOCAL_ADMISSION_FAILED', 'runtime must be immutable')
-    bundle.verify(runtime_root)
-    require(database_verification.get('manifest_sha256') == FINGERPRINT and database_verification.get('mount') == '/database'
-            and Path(database_prefix) == Path('/database')/PREFIX,
-            'DATABASE_UNVERIFIED', 'verified original read-only local database required')
-    scopes = {'preparation_charge','preparation_structure','features','descriptors','classifier_compatibility'}
-    require(set(profiles) == scopes, 'SCIENTIFIC_EXECUTION_UNAPPROVED', 'five admitted modern scopes required')
-    for scope, profile in profiles.items():
-        require(isinstance(profile,ExecutionProfile),'SCIENTIFIC_EXECUTION_UNAPPROVED','typed stage profile required')
-        profile.require_scientific_admission()
-        require(profile.data['scope'] == scope and profile.data['parameters']['recipe_sha256'] == recipe_sha256()
-                and profile.data['inputs']['fixture']['sha256'] == request['source']['sha256'],
-                'SCIENTIFIC_EXECUTION_UNAPPROVED', 'modern stage/source profile mismatch')
-    require(profiles['classifier_compatibility'].data['parameters'].get('model_deserialization_authorized') is True,
-            'SCIENTIFIC_EXECUTION_UNAPPROVED', 'original model execution admission missing')
+    if not local:
+        require(os.statvfs(runtime_root).f_flag & os.ST_RDONLY, 'LOCAL_ADMISSION_FAILED', 'runtime must be immutable')
+        bundle.verify(runtime_root)
+    require(database_verification.get('manifest_sha256') == FINGERPRINT
+            and (database_verification.get('fully_hashed') is True if local else
+                 database_verification.get('mount') == '/database' and Path(database_prefix) == Path('/database')/PREFIX),
+            'DATABASE_UNVERIFIED', 'verified original UniClust30 database required')
+    if not local:
+        scopes = {'preparation_charge','preparation_structure','features','descriptors','classifier_compatibility'}
+        require(set(profiles) == scopes, 'SCIENTIFIC_EXECUTION_UNAPPROVED', 'five admitted modern scopes required')
+        for scope, profile in profiles.items():
+            require(isinstance(profile,ExecutionProfile),'SCIENTIFIC_EXECUTION_UNAPPROVED','typed stage profile required')
+            profile.require_scientific_admission()
+            require(profile.data['scope'] == scope and profile.data['parameters']['recipe_sha256'] == recipe_sha256()
+                    and profile.data['inputs']['fixture']['sha256'] == request['source']['sha256'],
+                    'SCIENTIFIC_EXECUTION_UNAPPROVED', 'modern stage/source profile mismatch')
+        require(profiles['classifier_compatibility'].data['parameters'].get('model_deserialization_authorized') is True,
+                'SCIENTIFIC_EXECUTION_UNAPPROVED', 'original model execution admission missing')
     if execution == 'trusted-local':
         raw_source=_read(Path(request_directory)/request['source']['path'])
         if request['source']['format']=='pdb':
@@ -209,13 +209,14 @@ def run_reference(request_directory, *, bundle, runtime_root, profiles, database
     general = generic and trusted_local()
     expected_residues = admit_reference(bridge) if generic else 126
     roles = {key:runtime_root/value for key,value in bundle.data['roles'].items()}
-    tools = {'preparation_charge':'charge_python','preparation_structure':'science_python',
-             'features':'hhblits','descriptors':'protdcal_jar','classifier_compatibility':'science_python'}
-    for scope,role in tools.items():
-        require(profiles[scope].data['tool']['executable_sha256'] == bundle.data['files'][bundle.data['roles'][role]]['sha256']
-                and profiles[scope].data['python']['interpreter_sha256'] == bundle.data['files'][bundle.data['roles']['science_python']]['sha256']
-                and profiles[scope].data['dependencies']['lock_sha256'] == bundle.data['files'][bundle.data['roles']['dependency_lock']]['sha256'],
-                'SCIENTIFIC_EXECUTION_UNAPPROVED','tool/interpreter/dependency-lock profile mismatch')
+    if not local:
+        tools = {'preparation_charge':'charge_python','preparation_structure':'science_python',
+                 'features':'hhblits','descriptors':'protdcal_jar','classifier_compatibility':'science_python'}
+        for scope,role in tools.items():
+            require(profiles[scope].data['tool']['executable_sha256'] == bundle.data['files'][bundle.data['roles'][role]]['sha256']
+                    and profiles[scope].data['python']['interpreter_sha256'] == bundle.data['files'][bundle.data['roles']['science_python']]['sha256']
+                    and profiles[scope].data['dependencies']['lock_sha256'] == bundle.data['files'][bundle.data['roles']['dependency_lock']]['sha256'],
+                    'SCIENTIFIC_EXECUTION_UNAPPROVED','tool/interpreter/dependency-lock profile mismatch')
     model, reference, zeroed = (_read(roles[key], limit) for key,limit in
         (('model',1024**2),('reference',16*1024**2),('zeroed',32768)))
     verify_reference_assets(reference,zeroed,profile_bytes)
@@ -247,15 +248,16 @@ def run_reference(request_directory, *, bundle, runtime_root, profiles, database
         'fresh_feature_extraction':True,'frozen_feature_or_label_fallback':False,
         'execution_boundary':execution,
         'stage_deadlines_seconds':deadlines,
-        'versions':bundle.data['versions'],'stages':{scope:profile.data for scope,profile in profiles.items()}}))
+        'versions':bundle.data['versions'],'stages':{scope:profile.data for scope,profile in (profiles or {}).items()}}))
     extraction = root/'extraction'
     (root/'bridge.pdb').write_bytes(bridge)
     config = root/'preparation-request.json'
     config.write_bytes(canonical({'input':str(root/'bridge.pdb'),'input_sha256':digest(bridge),'work':str(extraction),
-        'chains':chains,'charge_timeout':min(180,deadlines['preparation']) if stage_deadlines is None else deadlines['preparation'],
+        'runtime':str(runtime_root),'chains':chains,'charge_timeout':min(180,deadlines['preparation']) if stage_deadlines is None else deadlines['preparation'],
         'general':general,
         'project_blank_pdb_segment':generic and (not isinstance(source,PdbSource)
             or all(not a.locator.segment for a in source.reference_atoms))}))
+    application = Path(__file__).parents[1]
     descriptor_runtime = {key:str(roles[role]) for key,role in
         (('java','java'),('python','descriptor_python'),('jar','protdcal_jar'),('helper','helper'),
          ('kernel','kernel'),('tables','weights'),('schema_json','schema_json'),('schema_tsv','schema_tsv'))}
@@ -264,7 +266,7 @@ def run_reference(request_directory, *, bundle, runtime_root, profiles, database
     recorder = StageRecorder(evidence_class='scientific_unvalidated')
     try:
         with recorder.activate(), bind_tools(native,{**roles,'pdb2pqr':roles['charge_python']},database_prefix):
-            measured('preparation.modern_two_pass')(native._tool)(stage_argv(roles['science_python'],'preparation',config),
+            measured('preparation.modern_two_pass')(native._tool)(stage_argv(roles['science_python'],'preparation',config,application),
                 root,'preparation',deadlines['preparation'])
             prepared,bindings,ca,charges = preparation_outputs(source,extraction,expected_residues,
                                                                general=general,chains=chains)
@@ -281,9 +283,9 @@ def run_reference(request_directory, *, bundle, runtime_root, profiles, database
             else:
                 conservation = native._conservation(extraction,dssp,bindings,deadlines['hhblits'],15)
             config = root/'dynamics-request.json'
-            config.write_bytes(canonical({'work':str(extraction),'bindings':[
+            config.write_bytes(canonical({'work':str(extraction),'runtime':str(runtime_root),'bindings':[
                 {'locator':vars(loc),'source':vars(res)} for loc,res in bindings.items()]}))
-            measured('features.modern_dynamics_process')(native._tool)(stage_argv(roles['dynamics_python'],'dynamics',config),
+            measured('features.modern_dynamics_process')(native._tool)(stage_argv(roles['dynamics_python'],'dynamics',config,application),
                 root,'dynamics',deadlines['dynamics'])
             rows = _json(_read(extraction/'dynamics.json'))
             dynamics = {Locator(**r['locator']):r['values'] for r in rows}
@@ -314,9 +316,9 @@ def run_reference(request_directory, *, bundle, runtime_root, profiles, database
     (extraction/'checkpoint.json').write_bytes(checkpoint)
     prediction_dir = root/'prediction'
     config = root/'inference-request.json'
-    config.write_bytes(canonical({'checkpoint':str(extraction),'sha256':digest(checkpoint),'model':str(roles['model']),
+    config.write_bytes(canonical({'checkpoint':str(extraction),'runtime':str(runtime_root),'sha256':digest(checkpoint),'model':str(roles['model']),
         'reference':str(roles['reference']),'zeroed':str(roles['zeroed']),'output':str(prediction_dir)}))
-    native._tool(stage_argv(roles['science_python'],'inference',config),root,'inference',deadlines['inference'])
+    native._tool(stage_argv(roles['science_python'],'inference',config,application),root,'inference',deadlines['inference'])
     prediction = {name:_read(prediction_dir/name) for name in ('scaling.json','labels.json','membrane.csv')}
     require((prediction_dir/'complete.json').is_file(),'LOCAL_WORKER_FAILED','inference completion receipt missing')
     return result,prediction

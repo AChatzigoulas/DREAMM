@@ -18,7 +18,7 @@ def verify_runtime(root,expected):
     require(digest(raw)==expected,'RUNTIME_INVALID','generation runtime receipt checksum differs')
     data=_json(raw)
     require(data['schema']=='dreamm-generation-runtime/1' and data['julia']=='1.10.13'
-        and data['chimera']=='1.19_b42556' and data['ProteinEnsembles']=='0.3.1'
+        and data.get('chimera') in (None,'1.19_b42556') and data['ProteinEnsembles']=='0.3.1'
         and data['original_exprose_tree']=='0c88d70cf1a9170ed684c337c5117d41ae9f4b8f'
         and data['plotting_only_correction'] is True and data['M1_scientific_changes'] is False
         and data['weight']=='0.4','RUNTIME_INVALID','qualified generation profile required')
@@ -38,8 +38,11 @@ def verify_runtime(root,expected):
         path=root/name;_parents(path.parent);info=path.lstat()
         require(path.is_file() and not path.is_symlink() and info.st_size==pin['bytes'] and info.st_size<=256*1024**2,
                 'RUNTIME_INVALID','generation file type/size differs: '+name)
-        with path.open('rb') as stream:actual=hashlib.file_digest(stream,'sha256').hexdigest()
-        require(actual==pin['sha256'],'RUNTIME_INVALID','generation file checksum differs: '+name)
+        checksum = hashlib.sha256()
+        with path.open('rb') as stream:
+            for block in iter(lambda: stream.read(1024**2), b''):
+                checksum.update(block)
+        require(checksum.hexdigest()==pin['sha256'],'RUNTIME_INVALID','generation file checksum differs: '+name)
     for name,target in links.items():
         path=root/name
         require(path.is_symlink() and os.readlink(path)==target and path.resolve().is_relative_to(root),
@@ -90,7 +93,8 @@ def export_checkpoint(args):
     from .ensemble_local import inventory
     from .cli import write_private,sync_directory
     attempt=Path(args.attempt).absolute();supervision=_json(_read(attempt/'supervision.json'))
-    require(supervision['namespace_cleanup_verified'] and not supervision['process_tree_remaining'],
+    require((supervision.get('process_group_cleanup_verified') or supervision.get('namespace_cleanup_verified'))
+            and not supervision['process_tree_remaining'],
             'GENERATION_INVALID','attempt must be closed before checkpoint export')
     candidates=[attempt/n/'generation' for n in ('results','failed-artifacts') if (attempt/n/'generation/generation-checkpoint.json').is_file()]
     require(len(candidates)==1,'GENERATION_INVALID','one complete generator stage required')
@@ -102,7 +106,8 @@ def export_checkpoint(args):
         if path.is_dir():continue
         name=path.relative_to(source).as_posix();raw=_read(path);files[name]={'bytes':len(raw),'sha256':digest(raw)}
         dest=root/name;dest.parent.mkdir(parents=True,exist_ok=True);write_private(dest,raw)
-    meta={'schema':'dreamm-saved-generation/1','producer_admission_sha256':digest(_read(attempt/'admission.json')),'files':files}
+    config = attempt/'run.json' if (attempt/'run.json').is_file() else attempt/'admission.json'
+    meta={'schema':'dreamm-saved-generation/1','producer_admission_sha256':digest(_read(config)),'files':files}
     write_private(root/'.checkpoint.pending',canonical(meta));os.rename(root/'.checkpoint.pending',root/'checkpoint.json');sync_directory(root)
     checksum=digest(canonical(meta));saved_checkpoint(root,checksum,reference_sha256=result['reference_sha256'],
         runtime_sha256=result['runtime_sha256'],additional=result['n_additional'])
@@ -114,7 +119,8 @@ def generate(root,ref,additional,config,spans,saved=None,seed=None):
     from .ensemble_analysis import measured
     require(type(additional) is int and 1<=additional<=50,'GENERATION_INVALID','n must be 1..50')
     require(seed is None or type(seed) is int and 0<=seed<2**64,'GENERATION_INVALID','invalid ExProSE seed')
-    work=Path('/work/generation');work.mkdir();(Path('/work/home')).mkdir(exist_ok=True)
+    work = Path(config['work'])/'generation'
+    work.mkdir()
     reference=_read(root/'prepared-reference.pdb');receipt=_json(_read(root/'reference-membrane-and-conservation.json'))
     require(digest(reference)==receipt['prepared_sha256'] and ca_identity(reference)=={k:r['aa'] for k,r in ref.items()},
             'GENERATION_INVALID','prepared M1 reference provenance or residues differ')
@@ -125,43 +131,47 @@ def generate(root,ref,additional,config,spans,saved=None,seed=None):
         require(seed is None or result.get('seed')==seed,'GENERATION_INVALID','saved ExProSE seed differs')
         for name in meta['files']:
             destination=work/name;destination.parent.mkdir(parents=True,exist_ok=True);destination.write_bytes(_read(source/name))
-        (Path('/work/generation-reuse.json')).write_bytes(canonical({'source_checkpoint_sha256':saved['sha256'],
+        (work.parent/'generation-reuse.json').write_bytes(canonical({'source_checkpoint_sha256':saved['sha256'],
             'exact_generated_coordinates_reused':True,'generator_rerun':False}))
         paths=[work/'output/pdbs'/('out.pdb.'+str(i)) for i in range(1,additional+1)]
         frames=[reference]+[_read(p) for p in paths]
         require(all(ca_identity(f)==ca_identity(reference) for f in frames),'GENERATION_INVALID','saved residue mapping differs')
         return frames,result
     (work/'reference.pdb').write_bytes(reference)
-    (work/'prepare.com').write_bytes(b'open reference.pdb\ndelete HC\nwrite #0 polar.pdb\nclose #0\n')
-    env=dict(os.environ,HOME='/work/home',JULIA_DEPOT_PATH='/generation/depot',
-        JULIA_LOAD_PATH='/generation/patched-project:@stdlib',JULIA_NUM_THREADS='1',
-        OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',JULIA_CPU_TARGET='generic',
-        FONTCONFIG_FILE='/etc/fonts/fonts.conf',XDG_CACHE_HOME='/nonexistent',LANG='C.UTF-8')
+    runtime = Path(config['runtime'])
+    generation = Path(config['generation'])
+    env=dict(os.environ,JULIA_DEPOT_PATH=str(generation/'depot'),
+        JULIA_LOAD_PATH=str(generation/'patched-project')+':@stdlib',JULIA_NUM_THREADS='1',
+        OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',JULIA_CPU_TARGET='generic',LANG='C.UTF-8')
     def run(stage,argv,timeout):
         with measured(stage,spans),(work/(stage+'.stdout')).open('xb') as so,(work/(stage+'.stderr')).open('xb') as se:
             subprocess.run(argv,cwd=work,env=env,stdin=subprocess.DEVNULL,stdout=so,stderr=se,check=True,timeout=timeout)
         (work/(stage+'.invocation.json')).write_bytes(canonical({'argv':argv,'timeout_seconds':timeout}))
-    run('chimera-preparation',['/generation/chimera/bin/chimera','--nogui','prepare.com'],120)
+    if config.get('chimera'):
+        (work/'prepare.com').write_bytes(b'open reference.pdb\ndelete HC\nwrite #0 polar.pdb\nclose #0\n')
+        run('chimera-preparation',[str(generation/'chimera/bin/chimera'),'--nogui','prepare.com'],120)
+    else:
+        from .polar import prepare
+        with measured('polar-preparation',spans):
+            patches = runtime/'charge/lib/python3.14/site-packages/pdb2pqr/dat/PATCHES.xml'
+            polar, evidence = prepare(reference, Path(config['p2rank'])/'ccd/chemcomp', patches)
+            (work/'polar.pdb').write_bytes(polar)
+            (work/'polar-preparation.json').write_bytes(evidence)
     original=atoms(reference);polar=_read(work/'polar.pdb');kept=atoms(polar)
     require(kept.keys()<=original.keys() and ca_identity(polar)==ca_identity(reference),
-            'GENERATION_INVALID','Chimera atom/residue correspondence differs')
+            'GENERATION_INVALID','polar preparation atom/residue correspondence differs')
     require(all(original[k].element_raw.strip()=='H' for k in original.keys()-kept.keys())
         and all(tuple(map(Decimal,kept[k].xyz_raw))==tuple(map(Decimal,original[k].xyz_raw)) for k in kept),
-        'GENERATION_INVALID','Chimera changed more than hydrogen selection')
-    bundle=_json(_read(Path('/inputs/runtime.json')))
-    env['LD_LIBRARY_PATH']='/runtime/native/lib'
-    run('dssp',['/runtime/'+bundle['roles']['dssp'],'-i','polar.pdb','-o','polar.dssp'],120)
-    env.pop('LD_LIBRARY_PATH',None)  # never leak DSSP's Boost closure into Julia
+        'GENERATION_INVALID','polar preparation changed retained atoms')
+    env['LD_LIBRARY_PATH']=str(runtime/'native/lib')
+    run('dssp',[str(runtime/config['roles']['dssp']),'-i','polar.pdb','-o','polar.dssp'],120)
+    env.pop('LD_LIBRARY_PATH',None)
     require(b'#  RESIDUE AA STRUCTURE' in _read(work/'polar.dssp'),'GENERATION_INVALID','DSSP output incomplete')
-    # Fontconfig's legacy ~/.fontconfig cache ignores XDG_CACHE_HOME and
-    # creates symlink aliases. Julia needs no writable home: use the already
-    # qualified read-only home and keep the strict no-symlink scratch policy.
-    env['HOME']='/generation/home'
     launcher=pkgutil.get_data('dreamm','data/exprose_entry.jl')
     (work/'run.jl').write_bytes(launcher)
     if seed is not None:env['DREAMM_EXPROSE_SEED']=str(seed)
-    run('exprose',['/generation/julia/bin/julia','--startup-file=no','--history-file=no','--compiled-modules=no',
-        '--project=/generation/patched-project','run.jl','--i1','polar.pdb','--d1','polar.dssp',
+    run('exprose',[str(generation/'julia/bin/julia'),'--startup-file=no','--history-file=no','--compiled-modules=no',
+        '--project='+str(generation/'patched-project'),'run.jl','--i1','polar.pdb','--d1','polar.dssp',
         '-n',str(additional),'-o','output','-w','0.4'],config.get('stage_deadlines',{}).get('generation',1200))
     output=work/'output';paths=[output/'pdbs'/('out.pdb.'+str(i)) for i in range(1,additional+1)]
     require(set((output/'pdbs').iterdir())==set(paths),'GENERATION_INVALID','missing/extra conformations')
@@ -194,7 +204,7 @@ def generate(root,ref,additional,config,spans,saved=None,seed=None):
     pca_status={1:'unavailable_single_generated_conformation',2:'unavailable_fewer_than_two_components'}
     result={'schema':'dreamm-modern-generation/1','complete':True,'n_additional':additional,'analysis_frames':len(frames),
         'w':'0.4','reference_sha256':digest(reference),'frames':records,'arrays':arrays,
-        'polar_sha256':digest(polar),'dssp_sha256':digest(_read(work/'polar.dssp')),
+        'polar_preparation':'chimera-1.19' if config.get('chimera') else 'ccd-bonds/1','polar_sha256':digest(polar),'dssp_sha256':digest(_read(work/'polar.dssp')),
         'pca_2d_plots':pca_status.get(additional,'recorded_native_outputs'),
         'ensemble_statistics':'unavailable_single_generated_conformation' if additional==1 else 'native',
         'runtime_sha256':config['generation_sha256'],'seed_supplied':seed is not None,'seed':seed,

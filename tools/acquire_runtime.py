@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 from pathlib import Path
 from urllib.parse import urlsplit
 import urllib.request
@@ -14,7 +15,7 @@ import urllib.request
 ROOT=Path(__file__).resolve().parents[1]
 
 
-def fetch(row,directory):
+def fetch(row,directory,reuse=None):
     name=row['filename'];expected=row['sha256'];url=row['url']
     if Path(name).name!=name or len(expected)!=64:raise ValueError('invalid artifact identity')
     parsed=urlsplit(url)
@@ -25,6 +26,17 @@ def fetch(row,directory):
     if path.exists():
         if path.is_symlink() or hashlib.sha256(path.read_bytes()).hexdigest()!=expected:raise ValueError('existing artifact differs: '+name)
         return {'file':name,'state':'verified_existing'}
+    cached = reuse/name if reuse else None
+    if cached and cached.is_file():
+        if cached.is_symlink() or hashlib.sha256(cached.read_bytes()).hexdigest()!=expected:
+            raise ValueError('cached artifact differs: '+name)
+        pending=directory/(name+'.pending')
+        with cached.open('rb') as original, pending.open('xb') as out:
+            shutil.copyfileobj(original,out)
+        if hashlib.sha256(pending.read_bytes()).hexdigest()!=expected:
+            raise ValueError('cached artifact changed during copy: '+name)
+        pending.rename(path)
+        return {'file':name,'state':'reused_verified_download'}
     pending=directory/(name+'.pending');checksum=hashlib.sha256();count=0
     with urllib.request.urlopen(url,timeout=90) as response,pending.open('xb') as out:
         while block:=response.read(1024**2):
@@ -41,6 +53,7 @@ def fetch(row,directory):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--output',required=True)
     parser.add_argument('--ensemble',action='store_true',help='also fetch the pinned P2Rank, XLSX and Julia assets')
+    parser.add_argument('--reuse-downloads',type=Path)
     args=parser.parse_args();directory=Path(args.output).absolute();directory.mkdir(mode=0o700,exist_ok=True)
     rows=[json.loads((ROOT/'runtime/modern-interpreters.json').read_bytes())['artifacts'][0]]
     native=json.loads((ROOT/'runtime/trusted-native.json').read_bytes())
@@ -60,7 +73,7 @@ def main():
         if row['filename'] in seen:
             if seen[row['filename']]!=row['sha256']:raise ValueError('conflicting artifact locks')
             continue
-        seen[row['filename']]=row['sha256'];record=fetch(row,directory);results.append(record);print(json.dumps(record),flush=True)
+        seen[row['filename']]=row['sha256'];record=fetch(row,directory,args.reuse_downloads);results.append(record);print(json.dumps(record),flush=True)
     receipt={'schema':'dreamm-public-acquisition/1','artifacts':results,'scientific_execution':False,
         'external_prerequisites':['MSMS academic/vendor archive','UniClust30 database','source-built ProDy wheel (tools/build_prody.py)']}
     (directory/'acquisition.json').write_text(json.dumps(receipt,indent=2)+'\n')

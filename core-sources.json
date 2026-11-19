@@ -5,7 +5,7 @@
     "dreamm_ensemble/__init__.py": "8d96489e2323d536070509d3021e339c749d044a7bed1eaa6be83845533033f4",
     "dreamm_ensemble/cluster_replay.py": "c0b925d584924a78c8267e55bf4cf42c9b2ec49ab56829ebb3fb835928ba6057",
     "dreamm_ensemble/essa_checkpoints.py": "4ebf93d09567e8f0df5e42a7c4c5cc1ce569df0237babce663571b23b8d09684",
-    "dreamm_ensemble/frames.py": "38eb1f88af502a3c0538a0790dc0b93f30e0acf8ec1799efebf85222457bd2c7",
+    "dreamm_ensemble/frames.py": "fc2d14a6e4e09cac02f5a1453ce4568152ea456cb14c2e6c7856c95c869e2c4d",
     "dreamm_ensemble/p2rank_csv.py": "8c1ad196e85044396d7379e419f4333982779afe773db25fa98e0610625e1073",
     "dreamm_ensemble/pockets.py": "3a072278ab3e341d45fd1487aacbc7b602062314aa211f9944d21509d39bfc89",
     "dreamm_m1/__init__.py": "54b519359b757b52e35d50f06247ec224c033d8d26ca2b26b45a57c05fac07dd",
@@ -19,7 +19,7 @@
     "dreamm_m1/hotspot_benchmarks.py": "bc3c615538180763dcb9abb6fdcc05e028ee4e240099149f4db0e7c9d5731991",
     "dreamm_m1/identity.py": "9fe0c93a4119c0bfea70e3de0d87117b1c3b871993bb1940737f26f523dbd510",
     "dreamm_m1/inference.py": "9a8e6f03c554b5438bb86cf875c4d21efe9d974c52d0f5271c14872161339f98",
-    "dreamm_m1/local_budget.py": "50901306aedd319dffa3313e020cf453dc94762cbf633f0c17e432fbdfc27962",
+    "dreamm_m1/local_budget.py": "7a5e48f32f10a675bbf68323b1ea76526c951ac784fe1afc41cb6f8ba017aa88",
     "dreamm_m1/measurement.py": "02a706fe8cb18bcbedec70dea0914cb9e62162370e30a90844cd99c82985efc8",
     "dreamm_m1/mmcif_evidence.py": "b41caeccafe86a2fb4e60a1347f01ec527f93f884731968fa3df77a2c2405999",
     "dreamm_m1/mmcif_input.py": "ca682ddc651c061e40bf198ba938e6a80168534754d035e35c8f38bd0f80aeaa",
@@ -46,7 +46,7 @@
     "dreamm_ensemble/frames.py": {
       "base_sha256": "b59f6410d779a52b4e8efa9cb6c89d1e5f58173d4203e28e692aa2986d592526",
       "pre_v1_1_sha256": "b59f6410d779a52b4e8efa9cb6c89d1e5f58173d4203e28e692aa2986d592526",
-      "purpose": "trusted-local source model capacity and selected C-alpha inventory"
+      "purpose": "trusted-local source model capacity and selected C-alpha inventory; compare two-character component names using PDB field padding"
     },
     "dreamm_m1/capture.py": {
       "base_sha256": "50fc8c323e40aa4d5a1a1b6f97ba3e65e488cae78cb041925d726240e246c529",
