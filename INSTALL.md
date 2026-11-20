@@ -16,7 +16,9 @@ Obtain the original [vendor MSMS 2.6.1 archive](https://github.com/sannerlab/dow
 ./install.sh
 ```
 
-Choose basic for M1/M2 or full for M1–M5. The installer finds the MSMS archive in Downloads when present and prompts for its path otherwise. It asks for the existing database directory or a local download destination. All hashes are checked internally. An equivalent noninteractive command is
+Choose basic for M1/M2 or full for M1–M5. Both profiles are Chimera-free for supported inputs. The installer finds the MSMS archive in Downloads when present and prompts for its path otherwise. It asks for the existing database directory or a local download destination. All hashes are checked internally.
+
+For noninteractive setup, supply the profile and paths explicitly.
 
 ```sh
 ./install.sh --profile full --database /data/uniclust30_2018_08 \
@@ -57,7 +59,7 @@ The frozen `dev` baseline qualified a clean basic/full installation and native M
 
 On Ubuntu 22.04 under WSL, both installation profiles completed. A direct one-frame M4 run and a direct two-frame M5 run produced verified ZIPs. M5 used the template-based preparation and the frozen 1RLW reference. The three retained polar structures matched their Chimera references at the atom and DSSP-table levels and gave identical inputs to ExProSE's readers.
 
-The direct M2 smoke test reached its 540-second HHblits test deadline on the Windows-mounted database. A separate check replayed the previously verified HHM for the exact query and completed the other native stages. All 499 descriptors, the ordered 727-feature matrix, raw predictions, and the seven membrane calls and flags matched the frozen M2 result. A new complete search on this branch remains unverified.
+The 1RLW M2 fresh HHblits search completed in 110.6 seconds on the checksum-verified UniClust30 database staged on ext4 under WSL. The search used the standard stage deadline. Validation reused the other M2 feature artifacts, recomputed the Conservation features, and ran the original classifier on the ordered 727-feature matrix. All 95 classifier labels and all seven membrane calls and terminal flags matched the frozen result. Conservation differed at 122 of 126 query positions, with a maximum absolute difference of 0.00451.
 
 ## Licences and redistribution
 

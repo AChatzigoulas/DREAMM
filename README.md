@@ -10,7 +10,7 @@ From a Linux Git checkout, run
 ./install.sh
 ```
 
-Choose basic for M1/M2 or full for M1–M5. See the [Linux installation guide](INSTALL.md) for the separately obtained MSMS archive, UniClust30 storage, and platform requirements.
+Choose basic for M1/M2 or full for M1–M5. Both profiles are Chimera-free for supported inputs. See the [Linux installation guide](INSTALL.md) for the separately obtained MSMS archive, UniClust30 storage, and platform requirements.
 
 ## Run DREAMM
 
