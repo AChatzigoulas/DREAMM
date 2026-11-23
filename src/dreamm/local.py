@@ -243,7 +243,8 @@ def validate_completion(results, config):
 def run(args):
     resource_preflight()
     require(type(args.timeout) is int and 60 <= args.timeout <= 18000, 'LOCAL_INVALID', 'local timeout must be 60..18000 seconds')
-    require(args.mode == 'M1' and args.pdb_id == '1RLW', 'LOCAL_MODE_UNQUALIFIED', 'dev3 direct execution initially admits frozen M1 1RLW only')
+    require(args.mode == 'M1' and args.pdb_id == '1RLW', 'LOCAL_MODE_UNQUALIFIED',
+            'the bounded-worker integration accepts only the frozen M1 1RLW input; use dreamm run -i for local research')
     root = delegated_root(args.cgroup_root)
     runtime = Path(args.runtime_root).absolute()
     bundle_raw = _read(Path(args.runtime_manifest).absolute())

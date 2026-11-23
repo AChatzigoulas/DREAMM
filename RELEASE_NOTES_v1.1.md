@@ -1,9 +1,9 @@
 # DREAMM v1.1
 
-- Standalone Linux commands for M1–M5, with official PDB-ID acquisition, local inputs, chain selection and automatic ensemble reference inference.
-- The original 165 effective residue mappings drive backbone-preserving preparation. Source, converted and prepared identities remain traceable throughout the result.
-- The original membrane classifier, 727-column feature order, 167 zeros, Conservation search settings and 470 + 29 ProtDCal implementation retain their pinned scientific assets. Chain-aware mapping keeps protein complexes intact for structural features.
-- Ensemble analysis retains P2Rank 2.5.1 and the versioned ExProSE generation path. Results preserve frame, atom and residue correspondence and distinguish complete empty predictions from failed jobs.
-- The guided installer separates basic and full local installations. It verifies locked artifacts and can reuse an exact verified UniClust30 database.
+- Install v1.1 from the `dev` branch using one guided Linux installer. Basic covers membrane-residue prediction. Full adds pocket analysis and ExProSE generation.
+- Run M1–M5 with a PDB accession or a local PDB/mmCIF file as appropriate for the mode. Select one or more author chains, or analyze all supported protein chains together.
+- The original classifier, 727-column feature order, HHblits settings and 470 + 29 ProtDCal descriptor path are preserved. The original 165 residue conversions and chain-aware mapping keep source identities traceable.
+- Pocket workflows reuse one membrane prediction for the reference and use P2Rank 2.5.1 on each frame. M5 analyzes the reference and 1–50 additional generated conformations. P2Rank 2.5.1 uses different models from historical DREAMM pocket predictions.
+- Results include membrane calls, structures and PyMOL files. Ensemble analyses add per-frame pocket predictions, interface and ranked-site tables, and Excel exports. Completed zero-site results are distinct from failures.
 
-See the [installation and validation scope](INSTALL.md), [developer guide](DEVELOPERS.md) and [third-party release gate](THIRD_PARTY_NOTICES.md#release-gate) before public distribution.
+See the [installation and validation guide](INSTALL.md), the [results guide](INSTALL.md#understand-your-results) and the [third-party notices](THIRD_PARTY_NOTICES.md).

@@ -1,11 +1,8 @@
 # New application code has the same line endings on every platform.
 .gitattributes text eol=lf
 LICENSE text eol=lf
-INSTALL.md text eol=lf
-MODERN_STACK.md text eol=lf
 runtime/*.json text eol=lf
 runtime/julia/*.toml text eol=lf
-STANDALONE.md text eol=lf
 build.py text eol=lf
 install.sh text eol=lf
 core-sources.json text eol=lf

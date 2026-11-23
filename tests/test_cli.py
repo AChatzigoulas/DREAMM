@@ -202,6 +202,17 @@ class CliTests(unittest.TestCase):
         self.assertEqual(out.getvalue(), "")
         self.assertEqual(json.loads(err.getvalue())["error"], "SOURCE_INVALID")
 
+    def test_installed_cli_help_and_profiles_describe_the_current_workflows(self):
+        parser = cli.parser()
+        help_text = parser.format_help()
+        self.assertIn("dreamm run -i 1RLW -c A", help_text)
+        mode = parser.parse_args(["run", "--mode", "M5", "-i", "1RLW", "--additional", "1"])
+        profile = cli.profiles(None)
+        self.assertEqual(mode.ensemble_profile, profile["ensemble"]["default_profile"])
+        self.assertEqual(profile["ensemble"]["additional_conformations"], [1, 50])
+        self.assertTrue(profile["ensemble"]["reference_included"])
+        self.assertNotIn("chimera", profile["ensemble"])
+
     def test_posix_request_modes(self):
         if os.name != "posix":
             self.skipTest("POSIX file modes require the Linux test run")

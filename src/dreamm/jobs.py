@@ -48,7 +48,8 @@ def spec_from_args(args):
     else:
         spec.update(structure_id=args.pdb_id.upper(), auth_chains=args.chains or [])
         if args.mode == "M5":
-            require(args.additional != 1, "M5_SINGLETON_UNQUALIFIED", "n=1 generation remains a separate scientific gate")
+            require(args.additional != 1, "M5_SINGLETON_UNQUALIFIED",
+                    "the coordinator submission path does not accept M5 with one additional conformation")
             spec["n_additional"] = args.additional
     return spec, raw
 
@@ -80,7 +81,8 @@ def read_pending(directory):
     expected = {"mode", "source_model_count", "source_sha256", "upload_id"} if upload else {"mode", "structure_id", "auth_chains"}
     if mode == "M5":
         expected.add("n_additional")
-        require(spec["n_additional"] != 1, "M5_SINGLETON_UNQUALIFIED", "n=1 generation remains unqualified")
+        require(spec["n_additional"] != 1, "M5_SINGLETON_UNQUALIFIED",
+                "the coordinator submission path does not accept M5 with one additional conformation")
     require(set(spec) == expected, "JOB_CREDENTIALS_INVALID", "saved request has unsupported fields")
     if upload:
         require(identifier(spec["upload_id"], 32) and type(spec["source_model_count"]) is int

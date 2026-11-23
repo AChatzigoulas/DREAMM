@@ -170,11 +170,16 @@ def profiles(args):
             "ordered_names_sha256": profile.names_sha256, "zero_filled_columns": len(profile.zeroed),
             "hhblits": {"version": "3.3.0", "database": "UniClust30 2018_08 HH-suite",
                         "threads": 15, "scientific_arguments": ["-M", "first", "-n", "3", "-v", "0"]},
-            "ensemble": {"p2rank": "2.5.1", "production_profile_selection": "pending",
-                         "chimera": "1.19", "exprose_weight": "0.4", "n_is_additional": True},
-            "native_launcher": "modern_trusted_local",
-            "native_scope": "bounded_single_chain_reference",
-            "validated_examples": {"M1/M2": "1RLW", "M3/M4": "2KS4", "M5": "1RLW; n=2 science, n=1 generation"}}
+            "ensemble": {"p2rank": "2.5.1", "default_profile": "default",
+                         "available_profiles": ["default", "alphafold"],
+                         "exprose_weight": "0.4", "n_is_additional": True,
+                         "additional_conformations": [1, 50], "reference_included": True},
+            "native_launcher": "standalone_linux",
+            "native_scope": "trusted_local_PDB_mmCIF_selected_or_all_protein_chains",
+            "validated_platform": "Ubuntu 22.04 x86-64 under WSL",
+            "validated_examples": {"M1/M2": "1RLW; two-chain M2 with an insertion code",
+                                   "M3/M4": "2KS4, 20 frames; one-frame M4 also checked",
+                                   "M5": "1RLW, reference plus 1 or 2 generated conformations"}}
 
 
 def verify_reference(args):
@@ -191,18 +196,20 @@ def parser():
     from .installation import install
     from .modern import install_components
     from .modern_inference import infer_checkpoint
-    result = argparse.ArgumentParser(prog="dreamm", description="DREAMM standalone development CLI")
+    result = argparse.ArgumentParser(prog="dreamm",
+        description="Predict membrane-penetrating residues and nearby ligand-binding pockets from protein structures.",
+        epilog="Start with dreamm run -i 1RLW -c A. Use dreamm run --help for workflow options.")
     result.add_argument("--version", action="version", version=__version__)
     commands = result.add_subparsers(dest="command", required=True)
-    commands.add_parser("profiles", help="show the pinned scientific contracts").set_defaults(action=profiles)
-    prepare_parser = commands.add_parser("prepare", help="freeze a request and source bytes without running science")
+    commands.add_parser("profiles", help="show scientific settings and tested examples").set_defaults(action=profiles)
+    prepare_parser = commands.add_parser("prepare", help="expert: freeze a request and source without predicting")
     prepare_parser.add_argument("--mode", required=True, choices=("M1", "M2", "M3", "M4", "M5"))
     prepare_parser.add_argument("--pdb-id")
     prepare_parser.add_argument("--chains", nargs="+")
     prepare_parser.add_argument("--additional", type=int)
     prepare_parser.add_argument("--output", required=True)
     prepare_parser.set_defaults(action=prepare)
-    inspect_parser = commands.add_parser("inspect", help="inspect all source models with the existing parser boundary")
+    inspect_parser = commands.add_parser("inspect", help="expert: inspect all models in a checksum-verified source")
     inspect_parser.set_defaults(action=inspect_source)
     for subparser in (prepare_parser, inspect_parser):
         subparser.add_argument("--input", required=True)
@@ -221,76 +228,87 @@ def parser():
         capture_parser.add_argument("--" + name, required=True)
     capture_parser.set_defaults(action=lambda a: validate_capture(a.directory, run_id=a.run_id,
         attempt_id=a.attempt_id, source_sha256=a.source_sha256))
-    runtime_parser = commands.add_parser("doctor-runtime", help="verify an installed compatibility runtime without executing it")
+    runtime_parser = commands.add_parser("doctor-runtime", help="expert: check runtime file integrity without starting tools")
     runtime_parser.add_argument("--manifest", required=True)
     runtime_parser.add_argument("--sha256", required=True)
     runtime_parser.add_argument("--root", required=True)
     runtime_parser.set_defaults(action=doctor)
-    requirements_parser = commands.add_parser("runtime-requirements", help="show modern or reference versions and asset fingerprints")
+    requirements_parser = commands.add_parser("runtime-requirements", help="expert: show runtime versions and asset fingerprints")
     requirements_parser.add_argument('--runtime-profile',choices=('modern','reference'),default='modern')
     requirements_parser.set_defaults(action=requirements)
     installation = commands.add_parser('install-runtime', help='offline install from a complete reviewed artifact lock; never run package hooks')
     for name in ('lock', 'sha256', 'artifacts', 'output'):
         installation.add_argument('--' + name, required=True)
     installation.set_defaults(action=install)
-    components = commands.add_parser('install-components', help='offline modern component candidate; does not qualify or run M1')
+    components = commands.add_parser('install-components', help='expert: install pinned Python components from local wheels')
     for name in ('manifest', 'sha256', 'wheelhouse', 'output'):
         components.add_argument('--' + name, required=True)
     components.set_defaults(action=lambda a: install_components(a.manifest, a.sha256, a.wheelhouse, a.output))
-    inference = commands.add_parser('infer-checkpoint', help='real modern original-model inference from verified features; no fresh extraction')
+    inference = commands.add_parser('infer-checkpoint', help='expert: run the original classifier on verified saved features')
     for name in ('checkpoint', 'sha256', 'model', 'reference', 'zeroed', 'output'):
         inference.add_argument('--' + name, required=True)
     inference.set_defaults(action=infer_checkpoint)
-    export_parser=commands.add_parser('export',help='verify and export an already completed local M1 attempt as PDB/CSV/PML/ZIP')
+    export_parser=commands.add_parser('export',help='verify and export completed M1/M2 results as PDB, CSV, PML and ZIP')
     export_parser.add_argument('--attempt',required=True)
     export_parser.add_argument('--output',required=True)
     export_parser.set_defaults(action=export_completed)
-    ref=commands.add_parser('export-reference',help='freeze a completed actual M1/M2 reference and Conservation for ensemble reuse')
+    ref=commands.add_parser('export-reference',help='save completed M1/M2 membrane calls and Conservation for ensemble reuse')
     ref.add_argument('--attempt',required=True);ref.add_argument('--output',required=True)
     ref.set_defaults(action=export_reference)
     gen=commands.add_parser('export-generation',help='freeze a complete generator stage from a closed attempt, without rerunning it')
     gen.add_argument('--attempt',required=True);gen.add_argument('--output',required=True)
     gen.set_defaults(action=export_generation)
-    local = commands.add_parser('run', help='direct local M1–M5 workflow')
-    local.add_argument('--runtime-profile', choices=('modern','reference'), default='modern')
-    local.add_argument('--mode', default='M1', choices=('M1','M2','M3','M4','M5'))
-    local.add_argument('-i', '--source', help='PDB ID or local PDB/mmCIF file using the installed configuration')
-    local.add_argument('-c', '--chains', nargs='+', help='author chain IDs, separated by spaces or commas')
-    local.add_argument('--config', help='guided installer configuration (default ~/.config/dreamm/config.json)')
-    local.add_argument('-p', '--processes', type=int, help='limit CPU affinity; scientific thread settings stay pinned')
-    local.add_argument('--memory-mib', type=int, help='optional sampled aggregate RSS ceiling in MiB')
-    local.add_argument('--source-mib', type=int, help='optional source byte limit in MiB')
-    local.add_argument('--artifact-mib', type=int, help='optional per-file limit in MiB')
-    local.add_argument('--scratch-mib', type=int, help='optional sampled scratch limit in MiB')
-    local.add_argument('--stage-timeout', action='append', default=[], metavar='STAGE=SECONDS',
-                       help='trusted-local deadline override; does not change scientific parameters')
-    local.add_argument('--pdb-id')
-    local.add_argument('--execution',choices=('trusted-local','bounded-worker'),default='trusted-local',
-        help='trusted-local: private local inputs with sampled limits; bounded-worker: delegated cgroup isolation')
-    for name in ('input', 'sha256', 'runtime-root', 'runtime-manifest', 'runtime-sha256','output'):
-        local.add_argument('--' + name)
+    local = commands.add_parser('run', help='run a local M1–M5 workflow',
+        usage='dreamm run -i ID_OR_FILE [options]',
+        description='M1/M2 predict membrane residues on the first model. '
+                    'M3/M4 analyze interface pockets on the supplied models. '
+                    'M5 generates additional conformations and includes the reference in the analysis.')
+    local.add_argument('--mode', default='M1', choices=('M1','M2','M3','M4','M5'), help='workflow (default: M1)')
+    local.add_argument('-i', '--source', metavar='ID_OR_FILE',
+        help='local PDB/mmCIF file for any mode, or a four-character PDB accession for M1, M3 or M5')
+    local.add_argument('-c', '--chains', nargs='+', metavar='CHAIN',
+        help='author chain IDs, separated by spaces or commas (default: all supported protein chains)')
+    local.add_argument('--additional', type=int, metavar='N', help='M5 only: generate 1–50 conformations in addition to the reference')
+    local.add_argument('--output', metavar='DIRECTORY', help='new result directory (default: a new DREAMM directory here)')
+    local.add_argument('--ensemble-profile', choices=('default','alphafold'), default='default',
+        help='P2Rank model for M3–M5 (default: default)')
+    advanced = local.add_argument_group('advanced local options')
+    advanced.add_argument('--config', help='override the configuration selected by the installed launcher')
+    advanced.add_argument('-p', '--processes', type=int, help='limit CPU affinity while keeping scientific thread settings')
+    advanced.add_argument('--memory-mib', type=int, help='optional sampled process-group memory limit in MiB')
+    advanced.add_argument('--source-mib', type=int, help='optional source size limit in MiB')
+    advanced.add_argument('--artifact-mib', type=int, help='optional per-file limit in MiB')
+    advanced.add_argument('--scratch-mib', type=int, help='optional sampled scratch space limit in MiB')
+    advanced.add_argument('--stage-timeout', action='append', default=[], metavar='STAGE=SECONDS',
+                          help='override a local stage deadline without changing scientific settings')
+    advanced.add_argument('--timeout', type=int, default=18000, metavar='SECONDS', help='job deadline (default: 18000 seconds)')
+    advanced.add_argument('--seed', type=int, help='optional M5 ExProSE UInt64 seed, recorded with the generated conformations')
+    advanced.add_argument('--full-database-verify', action='store_true', help='repeat the complete database checksum check')
+    expert = local.add_argument_group('explicit runtimes and checkpoints')
+    expert.add_argument('--runtime-profile', choices=('modern','reference'), default='modern')
+    expert.add_argument('--pdb-id')
+    for name in ('input', 'sha256', 'runtime-root', 'runtime-manifest', 'runtime-sha256'):
+        expert.add_argument('--' + name)
     for name in ('database','database-manifest','reference-checkpoint','reference-sha256',
                  'ensemble-runtime','ensemble-sha256','extensions','extensions-sha256',
                  'generation-runtime','generation-sha256','generation-checkpoint','generation-checkpoint-sha256'):
-        local.add_argument('--'+name)
-    local.add_argument('--ensemble-profile',choices=('default','alphafold'),default='default')
-    local.add_argument('--additional',type=int)
-    local.add_argument('--chimera', action='store_true', help='use a separately installed M5 Chimera fallback')
-    local.add_argument('--seed',type=int,help='optional M5 ExProSE UInt64 seed, recorded in generation provenance')
+        expert.add_argument('--'+name)
+    expert.add_argument('--application', help='built zipapp (default: the running zipapp)')
+    expert.add_argument('--chimera', action='store_true', help='select a separately installed M5 compatibility fallback')
+    server = local.add_argument_group('bounded worker integration')
+    server.add_argument('--execution', choices=('trusted-local','bounded-worker'), default='trusted-local',
+        help='ordinary runs use trusted-local. Bounded worker is for the separately provisioned 1RLW integration path')
     for name in ('source-packet','installation','installation-sha256','cgroup-root','launcher','launcher-sha256'):
-        local.add_argument('--'+name)
-    local.add_argument('--application', help='built zipapp; defaults to the running zipapp')
-    local.add_argument('--timeout', type=int, default=18000)
-    local.add_argument('--full-database-verify',action='store_true',help='force complete database SHA256 verification instead of unchanged installation receipt reuse')
+        server.add_argument('--'+name)
     local.set_defaults(action=run_local)
-    ensemble=commands.add_parser('analyze-ensemble',help='complete downstream science from verified frozen M1/P2Rank outputs; no search or classifier rerun')
+    ensemble=commands.add_parser('analyze-ensemble',help='expert: analyze verified saved membrane and P2Rank predictions')
     for name in ('checkpoint','sha256','runtime-root','runtime-manifest','runtime-sha256',
                  'extensions','extensions-sha256','output'):
         ensemble.add_argument('--'+name,required=True)
     ensemble.add_argument('--application')
     ensemble.add_argument('--timeout',type=int,default=3600)
     ensemble.set_defaults(action=analyze_ensemble)
-    submit_parser = commands.add_parser("submit", help="submit to the existing local scientific coordinator")
+    submit_parser = commands.add_parser("submit", help="server integration: submit through a configured coordinator")
     submit_parser.add_argument("--mode", choices=("M1", "M2", "M3", "M4", "M5"), required=True)
     submit_parser.add_argument("--pdb-id")
     submit_parser.add_argument("--chains", nargs="+")
@@ -303,7 +321,7 @@ def parser():
     submit_parser.add_argument("--job-dir", required=True)
     submit_parser.set_defaults(action=jobs.submit)
     for name, action in (("recover-submission", jobs.recover), ("status", jobs.status)):
-        subparser = commands.add_parser(name)
+        subparser = commands.add_parser(name, help="server integration: inspect or recover a coordinator job")
         subparser.add_argument("job_dir")
         subparser.set_defaults(action=action)
     return result
@@ -327,7 +345,7 @@ def _run_worker(args):
     require(not getattr(args, 'chimera', False) or args.mode == 'M5', 'REQUEST_INVALID', '--chimera is M5 only')
     if args.mode in ('M3','M4','M5'):
         require(args.execution=='trusted-local' and args.runtime_profile=='modern',
-                'LOCAL_MODE_UNQUALIFIED','standalone ensemble mode requires the explicit modern trusted-local boundary')
+                'LOCAL_MODE_UNQUALIFIED','use the installed standalone runtime for M3–M5')
         require(not any(getattr(args,n,None) for n in ('cgroup_root','installation','installation_sha256','source_packet','launcher','launcher_sha256')),
                 'LOCAL_ADMISSION_FAILED','never downgrade bounded-worker admission')
         require(all(getattr(args,n,None) for n in ('reference_checkpoint','reference_sha256','ensemble_runtime',

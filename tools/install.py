@@ -1,4 +1,4 @@
-"""Install a private, pinned DREAMM v1.1 runtime and the dreamm CLI on Linux."""
+"""Install DREAMM v1.1 on Linux. Choose basic for M1/M2 or full for M1–M5."""
 import argparse
 import fcntl
 import hashlib
@@ -146,7 +146,7 @@ def install(args):
                 if not db.is_dir():
                     command(sys.executable,'tools/acquire_database.py','--root',db.parent,'--manifest',db_lock)
     if db is None or not db.is_dir():
-        raise ValueError('Supply the verified UniClust30 directory with --database, or a download destination with --database-volume.')
+        raise ValueError('Use --database with an existing UniClust30 2018_08 directory, or --database-volume to download it.')
     caches=root/'cache';caches.mkdir(mode=0o700,exist_ok=True)
     p2rank=root/'p2rank'
     extras=root/'exports-runtime'
@@ -244,7 +244,7 @@ def main():
     database.add_argument('--database',help='already installed exact UniClust30 2018_08 directory')
     database.add_argument('--database-volume',help='download and verify UniClust30 onto this local volume')
     parser.add_argument('--msms-archive',help='original vendor download acquired under its licence')
-    parser.add_argument('--chimera-installer',help='optional separately obtained UCSF 1.19 fallback for M5')
+    parser.add_argument('--chimera-installer',help='expert: add a separately obtained M5 compatibility fallback during full setup')
     parser.add_argument('--reuse-downloads',type=Path,help='reuse archives from this directory after SHA256 verification')
     parser.add_argument('--asset-repo',help='local, lawfully acquired original DREAMM scientific asset checkout')
     args=parser.parse_args()
@@ -252,7 +252,7 @@ def main():
     if args.profile is None:
         args.profile = 'basic'
         if sys.stdin.isatty() and not Path(args.config or config_path()).is_file():
-            profile = input('DREAMM profile: basic (M1/M2) or full (M1–M5) [basic]: ').strip().lower()
+            profile = input('Install basic (membrane residues, M1/M2) or full (also interface pockets, M1–M5) [basic]: ').strip().lower()
             if profile not in ('', 'basic', 'full'):
                 parser.error('profile must be basic or full')
             args.profile = profile or 'basic'

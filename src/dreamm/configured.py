@@ -1,4 +1,4 @@
-"""User-facing local workflow layered on the fixed scientific worker commands."""
+"""Run a standalone workflow with its installed runtime and local coordinates."""
 import argparse
 import os
 from pathlib import Path
@@ -61,7 +61,8 @@ def get_input(value, mode):
         raw, origin = acquire(value)
         return raw, 'mmcif', value.upper(), origin
     fmt = {'.cif':'mmcif', '.mmcif':'mmcif', '.pdb':'pdb', '.ent':'pdb'}.get(path.suffix.lower())
-    require(fmt, 'SOURCE_INVALID', 'supply a PDB entry ID or a local .pdb/.ent/.cif/.mmcif file')
+    require(fmt, 'SOURCE_INVALID', 'supply a local .pdb/.ent/.cif/.mmcif file'
+            + (' or a four-character PDB accession' if mode in ('M1', 'M3', 'M5') else ''))
     raw = read_input(path, source_bytes())
     return raw, fmt, None, {'local_name': path.name}
 
@@ -104,7 +105,7 @@ def run(args):
                 ('input','sha256','pdb_id','runtime_root','runtime_manifest','runtime_sha256',
                  'database','database_manifest','application','source_packet','cgroup_root',
                  'installation','installation_sha256','launcher','launcher_sha256',*ENSEMBLE,*GENERATION)),
-            'REQUEST_INVALID', '-i uses the private local installation; separate expert runtime options')
+            'REQUEST_INVALID', 'use -i with the installed standalone configuration, or use explicit expert runtime options without -i')
     chains = [chain for value in (args.chains or ()) for chain in value.split(',')] or None
     args.chains = chains
     require(args.seed is None or (args.mode=='M5' and 0<=args.seed<2**64),

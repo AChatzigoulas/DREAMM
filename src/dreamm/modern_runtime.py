@@ -69,10 +69,8 @@ def requirements():
     return {'schema':ModernRuntimeBundle.schema,'versions':VERSIONS,'required_roles':sorted(ModernRuntimeBundle.roles),
         'python_layout':LAYOUT,'protected_sha256':ModernRuntimeBundle.pinned,'hhblits_threads':15,
         'database_fingerprint':FINGERPRINT,
-        'validated_visible_cpus':16,'complete_installation_lock_supplied':False,
-        'native_execution_qualified':False,
-        'qualified_examples':['frozen_1RLW_M1_trusted_local_Linux_x86_64_Python3.14.10_Java21'],
-        'qualification':'example_passed_general_runtime_and_other_modes_not_yet_qualified',
+        'installation_or_execution_performed':False,
+        'qualification':'requirements_only',
         'trusted_local':{'exact_visible_CPU_count_required':False,'HHblits_threads':15,
               'memory_policy':'optional_sampled_RSS_limit','minimum_available_ram_bytes':None,
               'namespaces_required':False,'delegated_cgroup_required':False}}
