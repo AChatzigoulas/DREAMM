@@ -2,7 +2,21 @@
 
 Use x86-64 Linux and a regular user account. The tested platform is Ubuntu 22.04 under WSL. Rocky Linux 9 and other distributions have yet to be qualified.
 
-1. Install Python 3.9 or later, Git, GCC/G++, make, tar and system CA certificates from your distribution. On Ubuntu 22.04, use `python3 git build-essential tar ca-certificates`. For the **full** installation also install `fontconfig fonts-dejavu-core`. The host Python starts installation. DREAMM installs and uses its own pinned Python 3.14.10.
+1. Install Python 3.9 or later, Git, GCC/G++, make, tar and system CA certificates from your distribution. On Ubuntu 22.04, run these commands for either profile.
+
+   ```sh
+   sudo apt update
+   sudo apt install python3 git build-essential tar ca-certificates
+   ```
+
+   For the **full** profile, also run:
+
+   ```sh
+   sudo apt install fontconfig fonts-dejavu-core
+   ```
+
+   The host Python starts installation. DREAMM installs and uses its own pinned Python 3.14.10.
+
 2. Obtain [vendor MSMS 2.6.1](https://github.com/sannerlab/downloads/releases/tag/msms-2.6.1) under the [applicable terms](THIRD_PARTY_NOTICES.md). Keep the filename `msms_i86_64Linux2_2.6.1.tar.gz` and put it in your Linux home directory's `Downloads/`, or enter its path when prompted.
 3. Have an existing **UniClust30 2018_08 HH-suite** database ready, or choose a local download volume during setup. The database uses 86.4 GiB unpacked. Allow about 140 GiB on the database volume during download and extraction. The installer also checks for at least 6 GiB free on the runtime volume. Allow additional RAM and disk space for scientific jobs. Prefer an SSD and a native Linux filesystem for the database. A Windows-mounted WSL drive can make database access much slower.
 
