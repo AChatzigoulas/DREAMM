@@ -19,9 +19,25 @@ The retained [bounded supervisor](src/dreamm/local.py), [isolated entry point](s
 
 ## Scientific safeguards and evidence
 
-- Preserve the [tool locks](runtime/) and [scientific source pins](core-sources.json). Fields such as `scientific_release_qualified: false` on acquisition/build manifests describe that operation's scope. Some are required by the installer. Artifact verification and scientific qualification are recorded separately. See the [validated runs](INSTALL.md#validation-scope).
+- Preserve the [tool locks](runtime/) and [scientific source pins](core-sources.json). Fields such as `scientific_release_qualified: false` on acquisition/build manifests describe that operation's scope. Some are required by the installer. Artifact verification and scientific qualification are recorded separately.
 - The archived 8 MiB source/artifact and 20-model defaults remain in bounded intake and inspection. The configured CLI's local budget replaces those defaults. This does not remove fixed-width PDB projections, the 9,999-model parser ceiling, or downstream stage-specific bounds such as the 8 MiB wCLQ and P2Rank table checks. M5 has its own range of 1–50 additional frames.
 - [Ensemble preparation](src/dreamm/ensemble_run.py) uses a hash-pinned bridge for the archived 1RLW mmCIF when no chains are selected. For M5 frames with the exact validated 1RLW prepared reference, it disables guessed bonds to prevent spurious covalent links between close groups. The guard applies only to preparation for that ensemble. It leaves the classifier input and other fixtures' preparation settings alone.
 - [Writer normalization](src/dreamm/writer_identity.py) preserves reviewed 1RLW bytes and removes permitted MoleculeKit-generated segment labels when the source had a blank segment field. Source identities, projection receipts and atom correspondence allow verification. Separate [prepared-structure adapters](src/dreamm/modern_preparation.py) handle qualified fixture-specific header and segment layouts.
 - The [M5 polar preparation](src/dreamm/polar.py) uses a pinned chemical-component dictionary, terminal templates and explicit bond records. It rejects unresolved topology. For a controlled comparison or fallback, install with a lawfully obtained `--chimera-installer` on a fresh full prefix and select `dreamm run --mode M5 … --chimera`. Current runtime setup does not add that fallback to an already finalized full runtime in place.
 - The [ranked site aggregation](src/dreamm/ensemble_analysis.py) groups by frame and cluster before ordering sites by maximum P2Rank score. The legacy CSV/XLSX display field `conformation_#_pocket_#` uses the integer conversion of the mean pocket rank per frame/site. When several pockets in a frame share a cluster, use the `pockets` and `frames` lists in `profile-result.json` for exact memberships.
+
+## Installer requirements and evidence
+
+| User-visible behavior | Where to verify it |
+| --- | --- |
+| Host Python, architecture, non-root ownership, required tools, interactive defaults, upgrade and launcher paths | [Installer](tools/install.py), [shell entry point](install.sh) |
+| Acquisition from versioned sources, archive cache reuse, native builds and historical Git objects | [Download selection](tools/acquire_runtime.py), [ProDy build](tools/build_prody.py), [FreeSASA, JDK helper and pinned assets](tools/install_trusted.py), [vendor MSMS archive identity](runtime/trusted-native.json) |
+| UniClust30 bytes and symbolic links, free-space reserve, download resume and verification in place | [Database lock](runtime/uniclust30-2018_08.json), [acquisition](tools/acquire_database.py), [verification receipt](src/dreamm/database_receipt.py) |
+| Full-profile additions, private Julia depot and graphics libraries | [P2Rank installer](tools/install_p2rank.py), [export dependencies](tools/install_ensemble_extras.py), [Julia extraction](tools/install_generation.py), [package instantiation](tools/qualify_generation.py), [Julia manifest](runtime/julia/Manifest.toml) |
+| Supported input forms, default output directories, reference reuse and mode-specific exports | [Configured execution](src/dreamm/configured.py), [membrane exports](src/dreamm/exports.py), [ensemble execution](src/dreamm/ensemble_local.py), [site tables](src/dreamm/ensemble_analysis.py) |
+
+## Standalone validation
+
+On Ubuntu 22.04 under WSL2, qualification used a fresh non-root basic prefix and upgraded it to full. The scientific controls include M1/M2 reference predictions, a two-chain M2 input with duplicate residue numbers and insertion B:11A, the 20-frame 2KS4 M3/M4 ensemble, a single-model M4 and 1RLW M5 analyses with two and three total frames. Some integrations reused verified reference or stage outputs. Platform and method qualification applies to the cases exercised.
+
+In a focused 1RLW M2 check, a fresh HHblits search on the verified database on ext4 and recomputed Conservation gave the same 95 eligible raw labels and all seven final calls and flags, with the other features reused. Conservation differed at 122 of 126 query positions (maximum absolute difference 0.00451). Preserve those distinctions when reporting repeatability.

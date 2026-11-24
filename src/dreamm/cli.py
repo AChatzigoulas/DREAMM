@@ -55,7 +55,8 @@ def check_selection(mode, fmt, pdb_id, chains, additional, *, trusted_input=Fals
             "REQUEST_INVALID", "unique author chain identifiers required")
     require((mode == "M5" and type(additional) is int and 1 <= additional <= 50)
             or (mode != "M5" and additional is None),
-            "REQUEST_INVALID", "M5 requests 1 to 50 additional conformations only")
+            "REQUEST_INVALID", "M5 requires --additional N with an integer from 1 to 50"
+            if mode == "M5" else "--additional is available only in M5")
 
 
 def request_data(args, raw):
@@ -176,7 +177,7 @@ def profiles(args):
                          "additional_conformations": [1, 50], "reference_included": True},
             "native_launcher": "standalone_linux",
             "native_scope": "trusted_local_PDB_mmCIF_selected_or_all_protein_chains",
-            "validated_platform": "Ubuntu 22.04 x86-64 under WSL",
+            "validated_platform": "Ubuntu 22.04 x86-64 under WSL2",
             "validated_examples": {"M1/M2": "1RLW; two-chain M2 with an insertion code",
                                    "M3/M4": "2KS4, 20 frames; one-frame M4 also checked",
                                    "M5": "1RLW, reference plus 1 or 2 generated conformations"}}
@@ -196,80 +197,92 @@ def parser():
     from .installation import install
     from .modern import install_components
     from .modern_inference import infer_checkpoint
-    result = argparse.ArgumentParser(prog="dreamm",
-        description="Predict membrane-penetrating residues and nearby ligand-binding pockets from protein structures.",
-        epilog="Start with dreamm run -i 1RLW -c A. Use dreamm run --help for workflow options.")
+    result = argparse.ArgumentParser(prog="dreamm", formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Predict membrane-penetrating residues and investigate nearby putative ligand-binding pockets.\n"
+                    "For a first prediction, try dreamm run -i 1RLW -c A.",
+        epilog="Advanced commands\n"
+               "  Inputs     inspect, prepare, verify-request, verify-reference, verify-capture\n"
+               "  Runtimes   runtime-requirements, doctor-runtime, install-runtime,\n"
+               "             install-components\n"
+               "  Results    export, export-reference, export-generation, infer-checkpoint,\n"
+               "             analyze-ensemble\n\n"
+               "Server integration\n"
+               "  submit, status, recover-submission\n\n"
+               "Use dreamm COMMAND --help for options and required inputs.")
     result.add_argument("--version", action="version", version=__version__)
-    commands = result.add_subparsers(dest="command", required=True)
-    commands.add_parser("profiles", help="show scientific settings and tested examples").set_defaults(action=profiles)
-    prepare_parser = commands.add_parser("prepare", help="expert: freeze a request and source without predicting")
+    commands = result.add_subparsers(dest="command", required=True, title="Local use", metavar="COMMAND")
+    prepare_parser = commands.add_parser("prepare", description="Save a request and its source without running a prediction.")
     prepare_parser.add_argument("--mode", required=True, choices=("M1", "M2", "M3", "M4", "M5"))
     prepare_parser.add_argument("--pdb-id")
     prepare_parser.add_argument("--chains", nargs="+")
     prepare_parser.add_argument("--additional", type=int)
     prepare_parser.add_argument("--output", required=True)
     prepare_parser.set_defaults(action=prepare)
-    inspect_parser = commands.add_parser("inspect", help="expert: inspect all models in a checksum-verified source")
+    inspect_parser = commands.add_parser("inspect", description="Inspect all models in a checksum-verified structure file.")
     inspect_parser.set_defaults(action=inspect_source)
     for subparser in (prepare_parser, inspect_parser):
         subparser.add_argument("--input", required=True)
         subparser.add_argument("--sha256", required=True)
         subparser.add_argument("--format", required=True, choices=("pdb", "mmcif"))
-    verify_parser = commands.add_parser("verify-request", help="verify a prepared request and exact source bytes")
+    verify_parser = commands.add_parser("verify-request", description="Verify a prepared request and its exact source bytes.")
     verify_parser.add_argument("directory")
     verify_parser.set_defaults(action=verify_request)
-    reference_parser = commands.add_parser("verify-reference", help="verify model/reference/schema without model loading")
+    reference_parser = commands.add_parser("verify-reference", description="Check the classifier, reference and feature schema without loading the model.")
     for name in ("model", "reference", "zeroed"):
         reference_parser.add_argument("--" + name, required=True)
     reference_parser.set_defaults(action=verify_reference)
-    capture_parser = commands.add_parser("verify-capture", help="validate an existing M1 capture through the original validator")
+    capture_parser = commands.add_parser("verify-capture", description="Verify scientific artifacts saved by an M1 run.")
     capture_parser.add_argument("directory")
     for name in ("run-id", "attempt-id", "source-sha256"):
         capture_parser.add_argument("--" + name, required=True)
     capture_parser.set_defaults(action=lambda a: validate_capture(a.directory, run_id=a.run_id,
         attempt_id=a.attempt_id, source_sha256=a.source_sha256))
-    runtime_parser = commands.add_parser("doctor-runtime", help="expert: check runtime file integrity without starting tools")
+    runtime_parser = commands.add_parser("doctor-runtime", description="Check runtime file integrity without starting the scientific tools.")
     runtime_parser.add_argument("--manifest", required=True)
     runtime_parser.add_argument("--sha256", required=True)
     runtime_parser.add_argument("--root", required=True)
     runtime_parser.set_defaults(action=doctor)
-    requirements_parser = commands.add_parser("runtime-requirements", help="expert: show runtime versions and asset fingerprints")
+    requirements_parser = commands.add_parser("runtime-requirements", description="Show runtime versions and asset fingerprints.")
     requirements_parser.add_argument('--runtime-profile',choices=('modern','reference'),default='modern')
     requirements_parser.set_defaults(action=requirements)
-    installation = commands.add_parser('install-runtime', help='offline install from a complete reviewed artifact lock; never run package hooks')
+    installation = commands.add_parser('install-runtime', description='Install offline from a complete reviewed artifact lock.')
     for name in ('lock', 'sha256', 'artifacts', 'output'):
         installation.add_argument('--' + name, required=True)
     installation.set_defaults(action=install)
-    components = commands.add_parser('install-components', help='expert: install pinned Python components from local wheels')
+    components = commands.add_parser('install-components', description='Install pinned Python components from local wheels.')
     for name in ('manifest', 'sha256', 'wheelhouse', 'output'):
         components.add_argument('--' + name, required=True)
     components.set_defaults(action=lambda a: install_components(a.manifest, a.sha256, a.wheelhouse, a.output))
-    inference = commands.add_parser('infer-checkpoint', help='expert: run the original classifier on verified saved features')
+    inference = commands.add_parser('infer-checkpoint', description='Run the original classifier on verified saved features.')
     for name in ('checkpoint', 'sha256', 'model', 'reference', 'zeroed', 'output'):
         inference.add_argument('--' + name, required=True)
     inference.set_defaults(action=infer_checkpoint)
-    export_parser=commands.add_parser('export',help='verify and export completed M1/M2 results as PDB, CSV, PML and ZIP')
+    export_parser=commands.add_parser('export',description='Verify and export completed M1/M2 results as PDB, CSV, PML and ZIP.')
     export_parser.add_argument('--attempt',required=True)
     export_parser.add_argument('--output',required=True)
     export_parser.set_defaults(action=export_completed)
-    ref=commands.add_parser('export-reference',help='save completed M1/M2 membrane calls and Conservation for ensemble reuse')
+    ref=commands.add_parser('export-reference',description='Save completed M1/M2 membrane calls and Conservation for ensemble analysis.')
     ref.add_argument('--attempt',required=True);ref.add_argument('--output',required=True)
     ref.set_defaults(action=export_reference)
-    gen=commands.add_parser('export-generation',help='freeze a complete generator stage from a closed attempt, without rerunning it')
+    gen=commands.add_parser('export-generation',description='Save a completed generation stage for reuse.')
     gen.add_argument('--attempt',required=True);gen.add_argument('--output',required=True)
     gen.set_defaults(action=export_generation)
-    local = commands.add_parser('run', help='run a local M1–M5 workflow',
+    local = commands.add_parser('run', help='analyze a protein structure or ensemble',
         usage='dreamm run -i ID_OR_FILE [options]',
-        description='M1/M2 predict membrane residues on the first model. '
-                    'M3/M4 analyze interface pockets on the supplied models. '
-                    'M5 generates additional conformations and includes the reference in the analysis.')
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='Basic or full installation\n'
+                    '  M1/M2  Predict membrane-penetrating residues on the first model.\n'
+                    'Full installation adds pocket analysis with membrane predictions from the first model\n'
+                    '  M3/M4  Analyze interface pockets in one or more supplied models.\n'
+                    '  M5     Generate additional conformations with ExProSE and analyze them\n'
+                    '         together with the reference.')
     local.add_argument('--mode', default='M1', choices=('M1','M2','M3','M4','M5'), help='workflow (default: M1)')
     local.add_argument('-i', '--source', metavar='ID_OR_FILE',
         help='local PDB/mmCIF file for any mode, or a four-character PDB accession for M1, M3 or M5')
     local.add_argument('-c', '--chains', nargs='+', metavar='CHAIN',
         help='author chain IDs, separated by spaces or commas (default: all supported protein chains)')
-    local.add_argument('--additional', type=int, metavar='N', help='M5 only: generate 1–50 conformations in addition to the reference')
-    local.add_argument('--output', metavar='DIRECTORY', help='new result directory (default: a new DREAMM directory here)')
+    local.add_argument('--additional', type=int, metavar='N', help='required for M5: generate 1–50 conformations in addition to the reference')
+    local.add_argument('--output', metavar='DIRECTORY', help='new result directory (default: DREAMM-<ID-or-mode>-<suffix> in the current directory)')
     local.add_argument('--ensemble-profile', choices=('default','alphafold'), default='default',
         help='P2Rank model for M3–M5 (default: default)')
     advanced = local.add_argument_group('advanced local options')
@@ -301,14 +314,15 @@ def parser():
     for name in ('source-packet','installation','installation-sha256','cgroup-root','launcher','launcher-sha256'):
         server.add_argument('--'+name)
     local.set_defaults(action=run_local)
-    ensemble=commands.add_parser('analyze-ensemble',help='expert: analyze verified saved membrane and P2Rank predictions')
+    commands.add_parser("profiles", help="show scientific settings and tested examples across profiles").set_defaults(action=profiles)
+    ensemble=commands.add_parser('analyze-ensemble',description='Analyze verified saved membrane and P2Rank predictions.')
     for name in ('checkpoint','sha256','runtime-root','runtime-manifest','runtime-sha256',
                  'extensions','extensions-sha256','output'):
         ensemble.add_argument('--'+name,required=True)
     ensemble.add_argument('--application')
     ensemble.add_argument('--timeout',type=int,default=3600)
     ensemble.set_defaults(action=analyze_ensemble)
-    submit_parser = commands.add_parser("submit", help="server integration: submit through a configured coordinator")
+    submit_parser = commands.add_parser("submit", description="Submit through a configured server coordinator.")
     submit_parser.add_argument("--mode", choices=("M1", "M2", "M3", "M4", "M5"), required=True)
     submit_parser.add_argument("--pdb-id")
     submit_parser.add_argument("--chains", nargs="+")
@@ -321,7 +335,7 @@ def parser():
     submit_parser.add_argument("--job-dir", required=True)
     submit_parser.set_defaults(action=jobs.submit)
     for name, action in (("recover-submission", jobs.recover), ("status", jobs.status)):
-        subparser = commands.add_parser(name, help="server integration: inspect or recover a coordinator job")
+        subparser = commands.add_parser(name, description="Inspect or recover a server coordinator job.")
         subparser.add_argument("job_dir")
         subparser.set_defaults(action=action)
     return result

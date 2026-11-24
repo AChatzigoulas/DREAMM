@@ -75,7 +75,9 @@ def config_path():
 
 def settings(path, mode):
     path = Path(path or config_path()).absolute()
-    require(path.is_file(),'INSTALL_REQUIRED','run ./install.sh first or select a DREAMM --config')
+    require(path.is_file(),'INSTALL_REQUIRED',
+            f'No DREAMM configuration found at {path}. Run ./install.sh in the DREAMM source directory '
+            'or select an existing configuration with dreamm run --config FILE.')
     _parents(path.parent)
     info=path.lstat()
     require(stat.S_ISREG(info.st_mode) and info.st_uid==os.getuid() and not info.st_mode&0o077,
@@ -88,7 +90,8 @@ def settings(path, mode):
     for key in needed:
         value = cfg.get(key)
         require(isinstance(value,str) and value, 'INSTALL_REQUIRED',
-                'selected mode needs the full installation' if key in ENSEMBLE+GENERATION else 'installation is incomplete')
+                f'{mode} needs the full installation. Run ./install.sh --profile full in the DREAMM source directory.'
+                if key in ENSEMBLE+GENERATION else 'The basic installation is incomplete. Rerun ./install.sh in the DREAMM source directory.')
         result[key] = sha(value) if key.endswith('_sha256') else str(Path(value).absolute())
         require(key.endswith('_sha256') or Path(value).is_absolute(),
                 'INSTALL_INVALID', 'configuration contains a relative runtime path')

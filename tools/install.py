@@ -95,8 +95,6 @@ def install(args):
     _parents(root)
     if root.stat().st_uid!=os.getuid() or root.stat().st_mode&0o077:
         raise ValueError('Installation prefix must be private and owned by the current user')
-    if shutil.disk_usage(root).free<6*1024**3:
-        raise ValueError('Reserve at least 6 GiB on the runtime volume for installation')
     cfg=Path(args.config or config_path()).absolute()
     cfg.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
     _parents(cfg.parent)
@@ -109,8 +107,16 @@ def install(args):
     runtime=root/'runtime'
     def ready(path,receipt):
         return (path/receipt).is_file()
+    generation=root/'generation'
+    p2rank=root/'p2rank'
+    extras=root/'exports-runtime'
+    full_missing=args.profile=='full' and any(not ready(path,receipt) for path,receipt in (
+        (p2rank,'runtime.json'),(extras,'checkpoint.json'),(generation,'runtime.json')))
+    if (not ready(runtime,'installation.json') or full_missing) and shutil.disk_usage(root).free < 6*1024**3:
+        raise ValueError('Installing missing runtime components requires 6 GiB free on '+str(root))
+    msms_lock=json.loads((ROOT/'runtime/trusted-native.json').read_bytes())['msms']
     if not ready(runtime,'installation.json') and not args.msms_archive:
-        name = 'msms_i86_64Linux2_2.6.1.tar.gz'
+        name = msms_lock['filename']
         candidates = [folder/name for folder in (Path.home()/'Downloads', root/'cache')]
         if args.reuse_downloads:
             candidates.insert(0, Path(args.reuse_downloads)/name)
@@ -118,9 +124,14 @@ def install(args):
         if not args.msms_archive and sys.stdin.isatty():
             args.msms_archive = input('Path to the separately licensed vendor MSMS archive: ').strip() or None
         if not args.msms_archive:
-            raise ValueError('Obtain vendor MSMS 2.6.1 under its licence and supply --msms-archive. See INSTALL.md.')
+            raise ValueError('Supply the original, pre-repack MSMS 2.6.1 archive with --msms-archive. See INSTALL.md.')
+    if not ready(runtime,'installation.json'):
+        msms=Path(args.msms_archive).expanduser().absolute()
+        if (msms.name != msms_lock['filename'] or not msms.is_file()
+                or msms.stat().st_size != msms_lock['bytes'] or sha(msms) != msms_lock['sha256']):
+            raise ValueError(f"Expected the original {msms_lock['filename']} ({msms_lock['bytes']} bytes). "
+                             "The vendor's November 2026 repack has a different checksum. See INSTALL.md.")
     args.asset_repo = args.asset_repo or str(ROOT)
-    generation=root/'generation'
     db=Path(args.database).absolute() if args.database else None
     db_lock=ROOT/'runtime/uniclust30-2018_08.json'
     if args.database_volume:
@@ -135,12 +146,12 @@ def install(args):
                 db = Path(candidate).absolute()
                 break
     if db is None and sys.stdin.isatty():
-        print('UniClust30 2018_08 needs 86.4 GiB unpacked and about 140 GiB during download.')
+        print('UniClust30 2018_08 occupies 86.38 GiB unpacked. A download also needs space for the archive and a 12 GiB reserve.')
         value = input('Path to an existing UniClust30 directory (Enter to download): ').strip()
         if value:
             db = Path(value).expanduser().absolute()
         else:
-            volume = input('Local download directory with about 140 GiB free (Enter to exit): ').strip()
+            volume = input('Directory for the archive and unpacked database (Enter to exit): ').strip()
             if volume:
                 db = Path(volume).expanduser().absolute()/PREFIX
                 if not db.is_dir():
@@ -148,10 +159,6 @@ def install(args):
     if db is None or not db.is_dir():
         raise ValueError('Use --database with an existing UniClust30 2018_08 directory, or --database-volume to download it.')
     caches=root/'cache';caches.mkdir(mode=0o700,exist_ok=True)
-    p2rank=root/'p2rank'
-    extras=root/'exports-runtime'
-    full_missing=args.profile=='full' and any(not ready(path,receipt) for path,receipt in (
-        (p2rank,'runtime.json'),(extras,'checkpoint.json'),(generation,'runtime.json')))
     if not ready(runtime,'installation.json') or full_missing:
         command(sys.executable,'tools/acquire_runtime.py','--output',caches,*(['--ensemble'] if full_missing else []),
                 *(['--reuse-downloads',args.reuse_downloads] if args.reuse_downloads else []))
@@ -164,9 +171,6 @@ def install(args):
         prody=root/'prody-build'
         if not ready(prody,'build.json'):
             command(env/'venv/bin/python','tools/build_prody.py','--source',caches/'prody-2.6.1.tar.gz','--output',prody,site=True)
-        msms=Path(args.msms_archive).absolute()
-        if msms.name!='msms_i86_64Linux2_2.6.1.tar.gz':
-            raise ValueError('Supply the official MSMS archive with its original filename')
         command(python,'tools/install_trusted.py','--cache',caches,'--cache',prody/'wheels',
                '--cache',msms.parent,'--output',runtime,'--asset-repo',Path(args.asset_repo).absolute(),
                '--prody-build-receipt',prody/'build.json','--prody-build-sha256',sha(prody/'build.json'),
@@ -237,7 +241,7 @@ def install(args):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--profile',choices=('basic','full'),help='basic (M1/M2) or full (M1–M5)')
+    parser.add_argument('--profile',choices=('basic','full'),help='basic: membrane residues (fresh noninteractive default); full: also pockets, Excel exports and ExProSE')
     parser.add_argument('--prefix',default=str(Path.home()/'.local/share/dreamm'))
     parser.add_argument('--config')
     database=parser.add_mutually_exclusive_group()
@@ -245,7 +249,7 @@ def main():
     database.add_argument('--database-volume',help='download and verify UniClust30 onto this local volume')
     parser.add_argument('--msms-archive',help='original vendor download acquired under its licence')
     parser.add_argument('--chimera-installer',help='expert: add a separately obtained M5 compatibility fallback during full setup')
-    parser.add_argument('--reuse-downloads',type=Path,help='reuse archives from this directory after SHA256 verification')
+    parser.add_argument('--reuse-downloads',type=Path,help='reuse matching archives after verification; a fresh full installation also fetches Julia packages')
     parser.add_argument('--asset-repo',help='local, lawfully acquired original DREAMM scientific asset checkout')
     args=parser.parse_args()
     root=Path(args.prefix).absolute()

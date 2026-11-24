@@ -35,17 +35,26 @@ def commit(path, data):
         stream.write(canonical(data));stream.flush();os.fsync(stream.fileno())
     os.replace(temporary,path)
 
+def check_space(root, expanded_bytes, download_bytes=0):
+    required = expanded_bytes + download_bytes + RESERVE
+    free = shutil.disk_usage(root).free
+    if free < required:
+        raise ValueError(f'UniClust30 needs {required / 1024**3:.2f} GiB free on {root} '
+                         f'including the 12 GiB reserve; {free / 1024**3:.2f} GiB available')
+
 def acquire(root, manifest):
     if hashlib.sha256(canonical(manifest['files'])).hexdigest()!=FINGERPRINT or manifest['fingerprint']!=FINGERPRINT:
         raise ValueError('database manifest changed')
     root=Path(root).absolute()
     if root.is_symlink():raise ValueError('data-root alias refused')
     root.mkdir(mode=0o700,parents=True,exist_ok=True)
-    if shutil.disk_usage(root).free < 140*1024**3:raise ValueError('140 GiB available physical storage required')
+    destination=root/PREFIX
+    if os.path.lexists(destination):raise ValueError('existing database is never overwritten; supply its directory with --database')
+    expanded_bytes = sum(row['bytes'] for row in manifest['files'] if row['kind'] == 'regular')
     # Probe only our own newly generated files, preserving unrelated content.
     probe=root/'.dreamm-link-target';alias=root/'.dreamm-link-alias'
-    if probe.exists() or os.path.lexists(alias):raise ValueError('unexpected probe leftovers')
-    probe.write_bytes(b'probe')
+    if os.path.lexists(alias):raise ValueError('unexpected probe leftovers')
+    with probe.open('xb') as stream:stream.write(b'probe')
     try:
         alias.symlink_to(probe.name)
         if alias.read_bytes()!=b'probe':raise ValueError('filesystem aliases unsupported')
@@ -54,6 +63,9 @@ def acquire(root, manifest):
         probe.unlink()
     archive=root/(PREFIX+'_hhsuite.tar.gz')
     partial=archive.with_suffix(archive.suffix+'.part')
+    for path in (archive, partial):
+        if os.path.lexists(path) and (path.is_symlink() or not path.is_file()):
+            raise ValueError('expected a regular database archive or partial download')
     started=time.monotonic()
     if not archive.exists():
         offset=partial.stat().st_size if partial.exists() else 0
@@ -63,6 +75,7 @@ def acquire(root, manifest):
             if offset and response.status!=206:raise ValueError('publisher did not honour download resume')
             length=int(response.headers.get('Content-Length','0'))+offset
             if not offset < length <= MAX_ARCHIVE:raise ValueError('unexpected database archive size')
+            check_space(root, expanded_bytes, length - offset)
             last=0
             with partial.open('ab' if offset else 'xb') as stream:
                 downloaded=offset
@@ -79,8 +92,8 @@ def acquire(root, manifest):
         os.rename(partial,archive)
     archive_sha=fingerprint(archive)
     if archive_sha!=ARCHIVE_SHA256:raise ValueError('database archive fingerprint differs')
-    destination=root/PREFIX
-    if destination.exists():raise ValueError('existing database is never overwritten')
+    if os.path.lexists(destination):raise ValueError('existing database is never overwritten')
+    check_space(root, expanded_bytes)
     work=root/('.'+PREFIX+'.extracting')
     work.mkdir(mode=0o700)
     expected={r['name']:r for r in manifest['files']};seen=set();links={};done=[]

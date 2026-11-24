@@ -2,7 +2,7 @@
 set -eu
 
 if ! command -v python3 >/dev/null 2>&1; then
-    echo 'DREAMM needs your distribution Python 3.9 or later to install.' >&2
+    echo 'DREAMM needs python3 (version 3.9 or later) on PATH to install.' >&2
     exit 2
 fi
 root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)

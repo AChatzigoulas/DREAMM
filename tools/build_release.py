@@ -5,7 +5,7 @@ from pathlib import Path
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-ROOT_FILES = ('README.md', 'INSTALL.md', 'LICENSE', 'install.sh', 'build.py', 'core-sources.json',
+ROOT_FILES = ('README.md', 'INSTALL.md', 'USAGE.md', 'LICENSE', 'install.sh', 'build.py', 'core-sources.json',
               'DEVELOPERS.md','THIRD_PARTY_NOTICES.md','RELEASE_NOTES_v1.1.md',
               '.gitattributes', '.gitignore')
 AREAS = {'src': {'.py', '.json', '.tsv', '.jl'}, 'tools': {'.py'}, 'tests': {'.py'},
