@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
 from dreamm.configured import config_path
 from dreamm.cli import write_private, sync_directory
+from dreamm.installation import read_msms_archive
 from dreamm_m1.capture import _parents
 
 
@@ -124,13 +125,10 @@ def install(args):
         if not args.msms_archive and sys.stdin.isatty():
             args.msms_archive = input('Path to the separately licensed vendor MSMS archive: ').strip() or None
         if not args.msms_archive:
-            raise ValueError('Supply the original, pre-repack MSMS 2.6.1 archive with --msms-archive. See INSTALL.md.')
+            raise ValueError('Download the MSMS 2.6.1 Linux archive from the official vendor release and supply --msms-archive. See INSTALL.md.')
     if not ready(runtime,'installation.json'):
         msms=Path(args.msms_archive).expanduser().absolute()
-        if (msms.name != msms_lock['filename'] or not msms.is_file()
-                or msms.stat().st_size != msms_lock['bytes'] or sha(msms) != msms_lock['sha256']):
-            raise ValueError(f"Expected the original {msms_lock['filename']} ({msms_lock['bytes']} bytes). "
-                             "The vendor's November 2026 repack has a different checksum. See INSTALL.md.")
+        read_msms_archive(msms, msms_lock)
     args.asset_repo = args.asset_repo or str(ROOT)
     db=Path(args.database).absolute() if args.database else None
     db_lock=ROOT/'runtime/uniclust30-2018_08.json'
@@ -172,7 +170,7 @@ def install(args):
         if not ready(prody,'build.json'):
             command(env/'venv/bin/python','tools/build_prody.py','--source',caches/'prody-2.6.1.tar.gz','--output',prody,site=True)
         command(python,'tools/install_trusted.py','--cache',caches,'--cache',prody/'wheels',
-               '--cache',msms.parent,'--output',runtime,'--asset-repo',Path(args.asset_repo).absolute(),
+               '--cache',msms.parent,'--msms-archive',msms,'--output',runtime,'--asset-repo',Path(args.asset_repo).absolute(),
                '--prody-build-receipt',prody/'build.json','--prody-build-sha256',sha(prody/'build.json'),
                *(['--resume-incomplete'] if runtime.exists() else []))
     pin=sha(runtime/'runtime.json')
@@ -247,7 +245,7 @@ def main():
     database=parser.add_mutually_exclusive_group()
     database.add_argument('--database',help='already installed exact UniClust30 2018_08 directory')
     database.add_argument('--database-volume',help='download and verify UniClust30 onto this local volume')
-    parser.add_argument('--msms-archive',help='original vendor download acquired under its licence')
+    parser.add_argument('--msms-archive',help='MSMS 2.6.1 Linux vendor archive (current or original revision)')
     parser.add_argument('--chimera-installer',help='expert: add a separately obtained M5 compatibility fallback during full setup')
     parser.add_argument('--reuse-downloads',type=Path,help='reuse matching archives after verification; a fresh full installation also fetches Julia packages')
     parser.add_argument('--asset-repo',help='local, lawfully acquired original DREAMM scientific asset checkout')

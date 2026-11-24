@@ -14,8 +14,19 @@
     "name": "msms",
     "filename": "msms_i86_64Linux2_2.6.1.tar.gz",
     "url": "https://github.com/sannerlab/downloads/releases/download/msms-2.6.1/msms_i86_64Linux2_2.6.1.tar.gz",
-    "bytes": 593147,
-    "sha256": "5f0ca50360b5938e74c538e0399d582abc4a40ef4cf410e66f31a1f91e6e3e1f",
+    "archives": [
+      {
+        "bytes": 593147,
+        "sha256": "5f0ca50360b5938e74c538e0399d582abc4a40ef4cf410e66f31a1f91e6e3e1f",
+        "notices": ["README"]
+      },
+      {
+        "bytes": 597469,
+        "sha256": "a0a5fbec5479a53c6cb5cd0eb2b51b82784c23b5c62b6daf71e7127a371ec1a1",
+        "notices": ["README", "LICENSE.md", "THIRD_PARTY_NOTICES.md"]
+      }
+    ],
+    "executable_sha256": "59b873672c740a4f30243a22af241659c98d9b206b7028ef8424c62aac4104dd",
     "vendor_sha256_available": true,
     "vendor_md5": null,
     "acquisition": "official-upstream",

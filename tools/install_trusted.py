@@ -5,6 +5,7 @@ No OLD-VM tree, package resolver, package hooks, root or system installation.
 """
 import argparse
 import hashlib
+import io
 import json
 import os
 from pathlib import Path,PurePosixPath
@@ -16,7 +17,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
-from dreamm.installation import install_archive,put
+from dreamm.installation import install_archive,put,read_msms_archive
 from dreamm.runtime import PINNED
 from dreamm.modern_runtime import ModernRuntimeBundle,VERSIONS,LAYOUT
 from dreamm_m1.identity import canonical,digest,require
@@ -57,6 +58,23 @@ def source_tree(archive,folder):
             else:
                 with p.open('xb') as out:out.write(src.extractfile(m).read())
                 p.chmod(0o700 if m.mode&0o111 else 0o600);os.utime(p,(m.mtime,m.mtime))
+
+
+def install_msms(path, lock, add):
+    raw, revision = read_msms_archive(path, lock)
+    binary = 'msms.x86_64Linux2.2.6.1'
+    with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as archive:
+        for name in [binary, *revision['notices']]:
+            member = archive.getmember(name)
+            require(member.isfile() and 0 < member.size <= 32*1024**2,
+                    'INSTALL_INVALID', 'unexpected MSMS archive member: '+name)
+            data = archive.extractfile(member).read()
+            if name == binary:
+                require(digest(data) == lock['executable_sha256'], 'INSTALL_INVALID', 'MSMS executable hash differs')
+                add('native/bin/msms', data, True)
+            else:
+                add('native/share/licenses/msms/'+name, data, False)
+    return {key: lock[key] for key in ('name','filename','url','acquisition','redistribute')} | revision
 
 
 def install(args):
@@ -102,13 +120,17 @@ def install(args):
             **{'data/'+n:'data/'+n for n in ('cs219.lib','context_data.lib','context_data.crf')}},'native'),
             ('dssp',{'bin/mkdssp':'bin/mkdssp'},'native'),
             ('boost',{f'lib/libboost_{n}.so.1.73.0':f'lib/libboost_{n}.so.1.73.0' for n in
-                ('thread','filesystem','program_options','iostreams','system','chrono','atomic','date_time')},'native'),
-            ('msms',{'msms.x86_64Linux2.2.6.1':'bin/msms'},'native')]:
+                ('thread','filesystem','program_options','iostreams','system','chrono','atomic','date_time')},'native')]:
         row=native[key];p=locate(caches,row['filename'],row['sha256']);sources.append(row)
         with tarfile.open(p) as src:
             for name,out in names.items():
                 m=src.getmember(name);require(m.isfile() and m.size<=32*1024**2,'INSTALL_INVALID','native package member differs')
                 add(destination+'/'+out,src.extractfile(m).read(),True)
+    msms = native['msms']
+    path = Path(args.msms_archive) if args.msms_archive else next(
+        (cache/msms['filename'] for cache in caches if (cache/msms['filename']).is_file()), None)
+    require(path is not None, 'INSTALL_INVALID', 'missing offline artifact: '+msms['filename'])
+    sources.append(install_msms(path, msms, add))
     # Published repository blobs are read by exact historical commit, not from
     # arbitrary working-tree files. This includes the unmodified original model.
     public={'model':('data/final_classifier.sav','assets/model.sav'),
@@ -139,7 +161,6 @@ def install(args):
         build_command(temp,classes,
             [str(tree/'jdk/bin/javac'),'-J-Xmx512m','--release','8','-proc:none','-g:none','-encoding','UTF-8',
              '-classpath',str(tree/'protdcal/ProtDCal.jar'),'-d',str(classes),str(ROOT/'java/src/org/dreamm/m1/WclqFinish.java')])
-        import io
         buffer=io.BytesIO()
         with zipfile.ZipFile(buffer,'w') as jar:
             name='org/dreamm/m1/WclqFinish.class';info=zipfile.ZipInfo(name,(1980,1,1,0,0,0))
@@ -177,6 +198,7 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--cache',action='append',required=True)
     p.add_argument('--output',required=True)
     p.add_argument('--asset-repo',help='trusted local Git checkout containing the pinned public asset commit')
+    p.add_argument('--msms-archive',help='explicit vendor archive to use in preference to the offline cache')
     p.add_argument('--resume-incomplete',action='store_true',help='rehash/reconstruct an uncommitted partial installation; never skip validation')
     p.add_argument('--prody-build-receipt',help='explicit separately built target-ABI wheel provenance; never an automatic fallback')
     p.add_argument('--prody-build-sha256',help='SHA256 of that exact source-build receipt')

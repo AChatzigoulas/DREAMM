@@ -2,6 +2,7 @@
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import sys
 import tarfile
@@ -120,16 +121,56 @@ class RuntimePreflightTests(unittest.TestCase):
             self.assertEqual(self.args.profile,'full')
 
     def test_vendor_archive_mismatch_fails_before_database_or_other_downloads(self):
+        import install_trusted
         vendor = json.loads((self.installer.ROOT/'runtime/trusted-native.json').read_bytes())['msms']
         archive = self.root/vendor['filename']
         self.args.msms_archive = str(archive)
         self.args.database = None
         self.args.database_volume = str(self.root)
         with patch.object(self.installer.shutil,'disk_usage',return_value=SimpleNamespace(free=8*1024**3)):
-            for size in (597469, vendor['bytes']):
+            for size in [1, *[row['bytes'] for row in vendor['archives']]]:
                 archive.write_bytes(b'x'*size)
-                with self.assertRaisesRegex(ValueError, 'vendor.*repack'):
+                with self.assertRaisesRegex(ValueError, 'verified vendor'):
                     self.installer.install(self.args)
+                with self.assertRaisesRegex(ValueError, 'verified vendor'):
+                    install_trusted.install_msms(archive, vendor, self.fail)
+
+    @unittest.skipUnless(os.getenv('DREAMM_TEST_MSMS_ORIGINAL') and os.getenv('DREAMM_TEST_MSMS_REPACK'),
+                         'supply both separately obtained vendor archives for extraction testing')
+    def test_original_and_repacked_msms_install_identical_executable_and_preserve_notices(self):
+        import install_trusted
+        from dreamm.installation import put
+        vendor = json.loads((self.installer.ROOT/'runtime/trusted-native.json').read_bytes())['msms']
+        self.args.database = str(self.root/'missing-database')
+        binaries = []
+        for variant, notices in [('ORIGINAL', ['README']), ('REPACK', ['README', 'LICENSE.md', 'THIRD_PARTY_NOTICES.md'])]:
+            with self.subTest(variant=variant):
+                archive = Path(os.environ['DREAMM_TEST_MSMS_'+variant])
+                self.args.msms_archive = str(archive)
+                # Reaching database validation proves that the ordinary installer accepted the vendor input.
+                with patch.object(self.installer.shutil, 'disk_usage', return_value=SimpleNamespace(free=8*1024**3)):
+                    with self.assertRaisesRegex(ValueError, 'Use --database'):
+                        self.installer.install(self.args)
+                tree = self.root/variant
+                tree.mkdir()
+                files, origins = {}, {}
+                def add(name, raw, executable):
+                    put(tree, name, raw, executable, files, origins, collect=True)
+                source = install_trusted.install_msms(archive, vendor, add)
+                self.assertEqual(source['sha256'], hashlib.sha256(archive.read_bytes()).hexdigest())
+                self.assertEqual(source['bytes'], archive.stat().st_size)
+                installed = tree/'native/bin/msms'
+                self.assertTrue(os.access(installed, os.X_OK))
+                binaries.append(installed.read_bytes())
+                self.assertEqual(hashlib.sha256(binaries[-1]).hexdigest(),
+                                 '59b873672c740a4f30243a22af241659c98d9b206b7028ef8424c62aac4104dd')
+                self.assertEqual(set(files), {'native/bin/msms'} | {'native/share/licenses/msms/'+n for n in notices})
+                with tarfile.open(archive) as tar:
+                    for name in notices:
+                        notice = tree/'native/share/licenses/msms'/name
+                        self.assertEqual(notice.read_bytes(), tar.extractfile(name).read())
+                        self.assertFalse(os.access(notice, os.X_OK))
+        self.assertEqual(binaries[0], binaries[1])
 
     def test_fresh_profile_selection(self):
         for terminal,answer,expected in ((False,None,'basic'),(True,'','basic'),(True,'full','full')):

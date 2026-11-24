@@ -11,7 +11,7 @@ DREAMM can also identify putative ligand-binding pockets near that interface. It
 | Predict membrane-penetrating residues in a reference structure (M1/M2) | **Basic**. Requires MSMS 2.6.1 and UniClust30 2018_08. |
 | Also find interface pockets in supplied conformations (M3/M4) or generate conformations with ExProSE (M5) | **Full**. Includes basic plus P2Rank, Excel export support and Julia/ExProSE, even if you only use supplied conformations. |
 
-Both bundles use the same membrane predictor. **First-time installation currently requires a lawfully obtained copy of the original MSMS archive.** The vendor now supplies a repack with a different checksum. See the [Linux installation guide](INSTALL.md) before downloading UniClust30. Once you have the prerequisites, install v1.1 from `dev` (`main` contains the historical version).
+Both bundles use the same membrane predictor. Download the Linux x86-64 MSMS 2.6.1 archive from the [official vendor release](https://github.com/sannerlab/downloads/releases/tag/msms-2.6.1) under its licence. The [Linux installation guide](INSTALL.md) explains where to save it and how much space to allow for UniClust30. The v1.1 development branch is `dev` (`main` contains the historical version).
 
 ```sh
 git clone --branch dev https://github.com/AChatzigoulas/DREAMM.git

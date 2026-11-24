@@ -5,7 +5,7 @@ Choose **basic** for membrane-residue prediction (M1/M2). Choose **full** if you
 ## Before you start
 
 1. **Use a regular account on x86-64 Linux with glibc.** You need a writable private installation directory, `python3` (3.9 or later), Git, GCC, G++, make, tar, and working HTTPS certificate verification for downloads. If your system already provides these, go straight to step 2. Host Python starts the installer. DREAMM supplies scientific Python 3.14.10 and Java 21, builds ProDy and FreeSASA, and compiles its Java helper. No separate Java, Julia or Conda setup is needed.
-2. **Check your MSMS archive before downloading the database.** Both profiles need the original Linux archive `msms_i86_64Linux2_2.6.1.tar.gz` (593,147 bytes). Keep a lawfully obtained copy in `~/Downloads/`, or enter its path at the prompt. On 18 November 2026 the vendor repackaged 2.6.1 under the same filename. Its current download differs from the pinned archive. A fresh installation is blocked if you have only that repack. See the [vendor release](https://github.com/sannerlab/downloads/releases/tag/msms-2.6.1) and [third-party terms](THIRD_PARTY_NOTICES.md).
+2. **Download MSMS 2.6.1 for Linux x86-64.** Review the [vendor terms](THIRD_PARTY_NOTICES.md) and download `msms_i86_64Linux2_2.6.1.tar.gz` from the [official release](https://github.com/sannerlab/downloads/releases/tag/msms-2.6.1). Save the unopened archive in `~/Downloads/`, or enter its path at the installer prompt. Both profiles accept the current 597,469-byte archive and a lawfully retained 593,147-byte original. The installer verifies the archive automatically.
 3. **Choose a location for UniClust30 2018_08 (HH-suite format).** If you have the exact unpacked database, use it in place. Otherwise choose a writable directory on a filesystem that supports symbolic links. The installer downloads and verifies the archive, then verifies the expanded files. Fresh acquisition needs approximately **123.24 GiB free** at the currently published download size. See [disk space](#disk-space) for reuse, interrupted downloads and runtime storage.
 4. **Allow network access for first setup.** The installer fetches version-pinned dependencies over HTTPS. Full setup also uses Julia’s package server and package/artifact sources to populate a new private depot, even if you supply all of DREAMM’s cached download archives.
 
@@ -20,7 +20,7 @@ Run DREAMM’s installer as your own user.
 
 ## Install and run your first prediction
 
-Use a full Git clone of the `dev` branch for v1.1. The default branch contains the historical version.
+Use a full Git clone of the `dev` branch for v1.1. The default branch contains the historical version. When testing a review branch, substitute its name for `dev` in the clone command.
 
 ```sh
 git clone --branch dev https://github.com/AChatzigoulas/DREAMM.git
@@ -55,7 +55,7 @@ If allocating disk in whole GiB, allow at least **124 GiB free** for a fresh dat
 
 | Symptom | What to do |
 | --- | --- |
-| Missing MSMS or archive mismatch | Supply the original archive under its original filename. The installer checks it against the [native lock](runtime/trusted-native.json). The current vendor repack, an unpacked executable or a different MSMS build cannot satisfy that check. |
+| Missing MSMS or archive mismatch | Download the Linux x86-64 archive from the official release linked above and keep its filename intact. The installer accepts the two revisions in the [native lock](runtime/trusted-native.json). |
 | Missing compiler, failed native build or shared library error | Check the named tool or library on the host. Use a compatible Linux build environment. The tested platform is listed below. |
 | Database verification failed | Select the directory that directly contains the exact 2018_08 files and their symbolic links. Keep download archives and unrelated files outside that directory. |
 | Julia package acquisition failed during full setup | Check HTTPS connectivity to Julia’s package server and artifact sources. The installation directory’s `julia-install/stderr` records the underlying error. An archive cache alone cannot supply a fresh Julia depot. |

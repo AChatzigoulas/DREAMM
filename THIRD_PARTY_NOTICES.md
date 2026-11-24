@@ -1,6 +1,6 @@
 # DREAMM v1.1 third-party prerequisites
 
-DREAMM code is distributed under [GPL-3.0](LICENSE). Supply the matching source including build scripts with the Python zipapp. Preserve the original [DREAMM authors and publications](README.md#cite-dreamm), and the notices that accompany separately installed tools. For installation prerequisites, including the required MSMS archive revision, see the [installation guide](INSTALL.md#before-you-start).
+DREAMM code is distributed under [GPL-3.0](LICENSE). Supply the matching source including build scripts with the Python zipapp. Preserve the original [DREAMM authors and publications](README.md#cite-dreamm), and the notices that accompany separately installed tools. For installation prerequisites, including the accepted MSMS archive revisions, see the [installation guide](INSTALL.md#before-you-start).
 
 | Dependency | Version and purpose | Source and terms | Distribution |
 | --- | --- | --- | --- |
@@ -14,11 +14,13 @@ DREAMM code is distributed under [GPL-3.0](LICENSE). Supply the matching source 
 | Other scientific runtime | CPython 3.14.10, Temurin Java 21, DSSP 3.0.0, FreeSASA 2.0.3, PDB2PQR, PROPKA, ProDy, MDAnalysis and classifier dependencies | Exact package identities and sources are in [native](runtime/trusted-native.json), [interpreter](runtime/modern-interpreters.json), [structure](runtime/modern-structure-cp314.json), [charge](runtime/modern-charge-cp314.json) and [dynamics build](runtime/modern-prody-build-cp314.json) locks. FreeSASA is MIT. Use the particular shipped notices for each artifact and its dependencies. | Automatically acquired from pinned sources where eligible. The source archive contains the locks and installers. |
 | Example input | 1RLW | [wwPDB CC0 coordinate data](https://www.wwpdb.org/about/usage-policies) and [entry 1RLW](https://www.rcsb.org/structure/1RLW). | Public PDB/mmCIF example in the checkout and curated source ZIP. |
 
+## MSMS archive revisions
+
+The installer accepts both official Linux 2.6.1 archives. The November 18 repack has SHA-256 `a0a5fbec5479a53c6cb5cd0eb2b51b82784c23b5c62b6daf71e7127a371ec1a1` (597,469 bytes). The original has SHA-256 `5f0ca50360b5938e74c538e0399d582abc4a40ef4cf410e66f31a1f91e6e3e1f` (593,147 bytes). Both contain the same scientific executables. DREAMM installs the executable with SHA-256 `59b873672c740a4f30243a22af241659c98d9b206b7028ef8424c62aac4104dd`.
+
+New installations retain the supplied archive’s `README` under `runtime/tree/native/share/licenses/msms/` inside the DREAMM installation prefix. The repack also supplies `LICENSE.md` and `THIRD_PARTY_NOTICES.md`, which the installer preserves alongside it. Users obtain MSMS directly from the vendor under its terms. [Vendor release](https://github.com/sannerlab/downloads/releases/tag/msms-2.6.1) · [MSMS licence](https://sannerlab.github.io/software/msms/license.html)
+
 ## Release gate
-
-**MSMS archive revision.** The vendor’s November 18 repack of the Linux 2.6.1 archive has SHA-256 `a0a5fbec5479a53c6cb5cd0eb2b51b82784c23b5c62b6daf71e7127a371ec1a1` (597,469 bytes). DREAMM pins the original `5f0ca50360b5938e74c538e0399d582abc4a40ef4cf410e66f31a1f91e6e3e1f` (593,147 bytes). A member-by-member comparison with the retained vendor original found a revised `README` and two added files, `LICENSE.md` and `THIRD_PARTY_NOTICES.md`. All eleven other original files have identical bytes, including both executables. The executable DREAMM installs has SHA-256 `59b873672c740a4f30243a22af241659c98d9b206b7028ef8424c62aac4104dd` in both.
-
-The historical Scripps Linux download now points to the repack, and the original GitHub asset is unavailable at its former URL. We verified no current authorized public download for the original archive. An eligible researcher with a lawfully retained copy can supply it locally. Supporting first-time users with the repack requires explicit approval of that archive revision and handling its accompanying notices. [Vendor release](https://github.com/sannerlab/downloads/releases/tag/msms-2.6.1) · [MSMS licence](https://sannerlab.github.io/software/msms/license.html)
 
 The installed science path requires the exact ProtDCal 4.5 JAR, ten companion JARs and associated configuration from the pinned local checkout. [The ProtDCal paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC4432771/) states GNU GPL. The release record still lacks the applicable licence version and notices for those exact bytes, their matching Corresponding Source and build inputs where required, and a basis for distributing the extracted wCLQ weights. The DREAMM source archive contains [those weights](src/dreamm/data/wclq-weights.json). The CLI zipapp leaves the weights to the installed runtime. The local installer verifies the supplied assets by hash. [GPL source and object-code terms, if applicable](https://spdx.org/licenses/GPL-3.0-only.html).
 

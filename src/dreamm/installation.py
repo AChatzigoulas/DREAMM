@@ -25,6 +25,20 @@ MAX_EXPANDED = 8 * 1024**3
 EXECUTABLE_ROLES = {'science_python', 'descriptor_python', 'java', 'hhblits', 'dssp', 'freesasa', 'msms', 'pdb2pqr'}
 
 
+def read_msms_archive(path, lock):
+    """Return the authenticated bytes and the matching vendor revision."""
+    error = f"Supply the verified vendor {lock['filename']} from the official release or a retained original. See INSTALL.md."
+    if path.name != lock['filename'] or not path.is_file():
+        raise ValueError(error)
+    with path.open('rb') as stream:
+        raw = stream.read(max(row['bytes'] for row in lock['archives']) + 1)
+    checksum = digest(raw)
+    for revision in lock['archives']:
+        if len(raw) == revision['bytes'] and checksum == revision['sha256']:
+            return raw, revision
+    raise ValueError(error)
+
+
 def package_lock(raw, expected):
     require(digest(raw) == sha(expected), 'INSTALL_LOCK_INVALID', 'reviewed installation lock checksum differs')
     data = _json(raw)
